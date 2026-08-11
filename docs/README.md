@@ -10,7 +10,7 @@ npm install
 npm start
 ```
 
-The development server opens at `http://localhost:3000/React-Native-Share-Content/`.
+The development server opens at `http://localhost:3000/expo-share-content/`.
 
 ## Production build
 
@@ -21,7 +21,7 @@ npm run serve
 ```
 
 The static output is written to `docs/build/` and is configured for GitHub Pages at
-`https://ngocdevv.github.io/React-Native-Share-Content/`.
+`https://ngocdevv.github.io/expo-share-content/`.
 
 ## Deployment
 

@@ -291,7 +291,7 @@ export default function Home(): React.ReactNode {
                 </Link>
                 <Link
                   className={styles.secondaryButton}
-                  href="https://github.com/ngocdevv/React-Native-Share-Content"
+                  href="https://github.com/ngocdevv/expo-share-content"
                 >
                   View on GitHub
                 </Link>

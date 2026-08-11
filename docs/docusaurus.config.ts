@@ -7,9 +7,9 @@ const config: Config = {
   tagline: 'Receive shared content reliably in Expo apps',
   favicon: 'img/favicon.svg',
   url: 'https://ngocdevv.github.io',
-  baseUrl: '/React-Native-Share-Content/',
+  baseUrl: '/expo-share-content/',
   organizationName: 'ngocdevv',
-  projectName: 'React-Native-Share-Content',
+  projectName: 'expo-share-content',
   trailingSlash: false,
   onBrokenLinks: 'throw',
   markdown: {
@@ -27,7 +27,7 @@ const config: Config = {
           breadcrumbs: true,
           showLastUpdateTime: false,
           editUrl:
-            'https://github.com/ngocdevv/React-Native-Share-Content/edit/main/docs/',
+            'https://github.com/ngocdevv/expo-share-content/edit/main/docs/',
         },
         blog: false,
         theme: {
@@ -59,17 +59,17 @@ const config: Config = {
       },
       items: [
         {
-          href: '/React-Native-Share-Content/?section=features',
+          href: '/expo-share-content/?section=features',
           label: 'Features',
           position: 'left',
         },
         {
-          href: '/React-Native-Share-Content/?section=showcase',
+          href: '/expo-share-content/?section=showcase',
           label: 'Example',
           position: 'left',
         },
         {
-          href: '/React-Native-Share-Content/?section=faq',
+          href: '/expo-share-content/?section=faq',
           label: 'FAQ',
           position: 'left',
         },
@@ -85,7 +85,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/ngocdevv/React-Native-Share-Content',
+          href: 'https://github.com/ngocdevv/expo-share-content',
           label: 'GitHub',
           position: 'right',
           className: 'navbar-github-link',
@@ -122,7 +122,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/ngocdevv/React-Native-Share-Content',
+              href: 'https://github.com/ngocdevv/expo-share-content',
             },
             {
               label: 'npm',
@@ -130,7 +130,7 @@ const config: Config = {
             },
             {
               label: 'License',
-              href: 'https://github.com/ngocdevv/React-Native-Share-Content/blob/main/LICENSE',
+              href: 'https://github.com/ngocdevv/expo-share-content/blob/main/LICENSE',
             },
           ],
         },

@@ -56,6 +56,14 @@
   ],
   "author": "ngocdevv <ngoc1997307@gmail.com> (https://github.com/ngocdevv)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngocdevv/expo-share-content.git"
+  },
+  "homepage": "https://ngocdevv.github.io/expo-share-content/",
+  "bugs": {
+    "url": "https://github.com/ngocdevv/expo-share-content/issues"
+  },
   "engines": {
     "node": "^20.19.4 || ^22.13.0 || ^24.3.0 || >=25.0.0"
   },
