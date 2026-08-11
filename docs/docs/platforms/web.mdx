@@ -1,0 +1,26 @@
+---
+sidebar_position: 3
+title: Web
+description: Safe no-op behavior for universal Expo and React Native code.
+---
+
+# Web
+
+The web implementation preserves the public API without attempting to emulate a native share receiver.
+
+## Behavior
+
+```ts
+await ExpoShareContent.getPendingSharesAsync(); // []
+await ExpoShareContent.getInitialShareAsync(); // null
+await ExpoShareContent.clearPendingSharesAsync(); // void
+```
+
+Listeners return removable no-op subscriptions:
+
+```ts
+const subscription = ExpoShareContent.addShareListener(() => {});
+subscription.remove();
+```
+
+This lets universal modules import `expo-share-content` without platform guards. Receiving content from a browser share target or implementing a Progressive Web App share target is outside this package's scope.

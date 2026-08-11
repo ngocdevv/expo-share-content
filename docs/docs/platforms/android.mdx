@@ -1,0 +1,68 @@
+---
+sidebar_position: 1
+title: Android
+description: Android intent filters, activity lifecycle delivery, URI validation, and file limits.
+---
+
+# Android
+
+The config plugin adds MIME-specific `SEND` and `SEND_MULTIPLE` filters to the main activity and registers the Expo lifecycle package.
+
+## Generated integration
+
+The plugin:
+
+- adds the configured share intent filters;
+- sets `launchMode="singleTask"` and `documentLaunchMode="never"`;
+- wires launch intents and `onNewIntent` into the native intake holder;
+- writes native limits as application metadata;
+- preserves user-authored filters and avoids duplicate generated filters.
+
+Run a clean prebuild after changing filters so disposable native output is regenerated:
+
+```bash
+npx expo prebuild --clean
+```
+
+## Supported intent data
+
+The parser supports:
+
+- `Intent.EXTRA_TEXT`;
+- `Intent.EXTRA_STREAM`;
+- `ClipData`;
+- multiple attachments in one `ACTION_SEND_MULTIPLE` operation;
+- text accompanying attachments.
+
+Only `content://` streams belonging to the current intent are accepted. The intent must carry `FLAG_GRANT_READ_URI_PERMISSION` and pass a URI permission check. `file://` URIs and ambient permissions without a share grant are rejected.
+
+## Attachment copies
+
+Incoming streams are copied into app no-backup storage before JavaScript receives a `file://` URI. Copying enforces:
+
+- item-count limits;
+- per-file byte limits;
+- aggregate per-share limits;
+- the 1 GiB module-managed storage cap.
+
+Malformed URIs are reported through `onShareError` without discarding already queued valid receipts.
+
+## Task behavior
+
+`singleTask` allows a new share to reach an existing activity through `onNewIntent`. Review this setting if your application intentionally relies on another Android task model.
+
+The activity intent is consumed and neutralized after capture to avoid lifecycle replay in the current process. Two deliberate shares with identical content remain two independent receipts.
+
+## Testing checklist
+
+Test on a physical Android device with multiple source applications:
+
+- cold and warm text shares;
+- URLs from browsers;
+- one image from Photos/Gallery;
+- multiple images;
+- a document from Files;
+- malformed or inaccessible provider URIs;
+- process death and task restoration.
+
+Source applications vary in MIME type, metadata, filename, and permission behavior.

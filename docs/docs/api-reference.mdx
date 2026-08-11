@@ -1,0 +1,119 @@
+---
+sidebar_position: 5
+title: API reference
+description: Public methods, listeners, helpers, and TypeScript payload types.
+---
+
+# API reference
+
+All share methods are available on the default export and as named exports. `dedupeShares` and `createShareContentApi` are named exports only.
+
+```ts
+import ExpoShareContent, {
+  getPendingSharesAsync,
+  type SharePayload,
+} from 'expo-share-content';
+```
+
+## `getPendingSharesAsync`
+
+```ts
+getPendingSharesAsync(): Promise<SharePayload[]>
+```
+
+Reads queued payloads without removing them. Results are oldest first, and duplicate IDs inside the native response are removed.
+
+## `getInitialShareAsync`
+
+```ts
+getInitialShareAsync(): Promise<SharePayload | null>
+```
+
+Returns the oldest pending payload without removing it.
+
+## `clearPendingSharesAsync`
+
+```ts
+clearPendingSharesAsync(shareIds?: readonly string[]): Promise<void>
+```
+
+Pass IDs to acknowledge selected records. Omit the argument to clear the entire pending queue. Acknowledgement removes queue records but deliberately does not delete attachment files.
+
+## `releaseSharedFilesAsync`
+
+```ts
+releaseSharedFilesAsync(shareIds: readonly string[]): Promise<void>
+```
+
+Deletes module-managed attachment directories for already acknowledged receipts. The method rejects IDs that remain pending.
+
+## `addShareListener`
+
+```ts
+addShareListener(
+  listener: (payload: SharePayload) => void
+): ShareSubscription
+```
+
+Subscribes to warm-start payloads. Remove the subscription when the owning component unmounts.
+
+## `addShareErrorListener`
+
+```ts
+addShareErrorListener(
+  listener: (error: ShareErrorEvent) => void
+): ShareSubscription
+```
+
+Subscribes to native parsing, file-copy, queue, and App Group errors.
+
+## `dedupeShares`
+
+```ts
+dedupeShares(payloads: readonly SharePayload[]): SharePayload[]
+```
+
+Removes repeated payload IDs while preserving first-arrival order.
+
+## Types
+
+```ts
+export type SharedContentType =
+  | 'text'
+  | 'url'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'file';
+
+export type SharedContentItem = {
+  id: string;
+  type: SharedContentType;
+  mimeType: string | null;
+  text?: string;
+  uri?: string;
+  fileName?: string;
+  size?: number;
+};
+
+export type SharePayload = {
+  id: string;
+  timestamp: number;
+  source: 'share-sheet';
+  title?: string;
+  items: SharedContentItem[];
+};
+
+export type ShareErrorEvent = {
+  code: string;
+  message: string;
+};
+
+export type ShareSubscription = {
+  remove(): void;
+};
+```
+
+## Testing with an injected module
+
+`createShareContentApi` builds the public wrapper around a compatible native module. It is useful for package tests and advanced dependency injection; most applications should use the default export.
