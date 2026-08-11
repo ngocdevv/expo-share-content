@@ -1,0 +1,130 @@
+---
+sidebar_position: 1
+title: Getting started
+description: Install expo-share-content, configure the Expo plugin, and receive your first shared payload.
+---
+
+# Getting started
+
+Receive text, URLs, images, video, audio, and files shared **into** an Expo app.
+
+:::info Native module required
+`expo-share-content` does not work in Expo Go. Use a development build or a production build after running Expo prebuild.
+:::
+
+## Requirements
+
+- Expo SDK 57
+- React Native 0.86
+- Android API 24 or newer
+- iOS 16.4 or newer
+- An Expo project with `android.package` and `ios.bundleIdentifier`
+
+## Install
+
+```bash
+npx expo install expo-share-content
+```
+
+## Add the config plugin
+
+Add platform identifiers and the package to your Expo configuration:
+
+```json title="app.json"
+{
+  "expo": {
+    "scheme": "myapp",
+    "ios": {
+      "bundleIdentifier": "com.example.myapp"
+    },
+    "android": {
+      "package": "com.example.myapp"
+    },
+    "plugins": [
+      [
+        "expo-share-content",
+        {
+          "iosShareExtensionName": "ShareExtension"
+        }
+      ]
+    ]
+  }
+}
+```
+
+The plugin adds Android share intent filters and creates a native iOS Share Extension target. You do not manually copy native source files into your project.
+
+## Register a receiver
+
+Register listeners early, then query pending payloads. Keep processing idempotent because a live event and a pending query can expose the same payload ID.
+
+```tsx title="ShareReceiver.tsx"
+import ExpoShareContent, {
+  type SharePayload,
+} from 'expo-share-content';
+import { useEffect } from 'react';
+
+export function ShareReceiver() {
+  useEffect(() => {
+    const processing = new Set<string>();
+
+    const processShare = async (payload: SharePayload) => {
+      if (processing.has(payload.id)) return;
+      processing.add(payload.id);
+
+      try {
+        // Persist text or copy managed file:// items into permanent storage.
+        await importShare(payload);
+
+        // Remove the durable queue record only after the import succeeds.
+        await ExpoShareContent.clearPendingSharesAsync([payload.id]);
+
+        // Delete module-managed attachment directories when no longer needed.
+        await ExpoShareContent.releaseSharedFilesAsync([payload.id]);
+      } catch (error) {
+        processing.delete(payload.id);
+        console.error(error);
+      }
+    };
+
+    const shareSubscription = ExpoShareContent.addShareListener((payload) => {
+      void processShare(payload);
+    });
+
+    const errorSubscription = ExpoShareContent.addShareErrorListener(console.error);
+
+    void ExpoShareContent.getPendingSharesAsync().then((payloads) => {
+      for (const payload of payloads) void processShare(payload);
+    });
+
+    return () => {
+      shareSubscription.remove();
+      errorSubscription.remove();
+    };
+  }, []);
+
+  return null;
+}
+```
+
+`importShare` is application code, not an export from this package.
+
+## Generate native projects
+
+```bash
+npx expo prebuild --clean
+npx expo run:ios
+npx expo run:android
+```
+
+Re-run prebuild and rebuild the development client whenever plugin options change. Starting Metro alone cannot apply native project changes.
+
+## Verify the integration
+
+1. Install the development build on a device or simulator.
+2. Share text or a URL from another app.
+3. Confirm the payload appears through the listener or pending query.
+4. Test a cold start by force-closing the app before sharing.
+5. Test attachments from Photos and Files on real devices before release.
+
+Next, read [Delivery and lifecycle](./fundamentals/delivery-lifecycle) before implementing permanent file retention.

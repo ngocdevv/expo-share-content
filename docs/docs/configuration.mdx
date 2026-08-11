@@ -1,0 +1,71 @@
+---
+sidebar_position: 4
+title: Configuration
+description: Configure Android MIME filters, iOS extension identifiers, activation rules, auto-open, and safety limits.
+---
+
+# Configuration
+
+Pass options as the second item in the Expo config-plugin tuple.
+
+```json title="app.json"
+{
+  "expo": {
+    "scheme": "myapp",
+    "ios": {
+      "bundleIdentifier": "com.example.myapp"
+    },
+    "android": {
+      "package": "com.example.myapp"
+    },
+    "plugins": [
+      [
+        "expo-share-content",
+        {
+          "androidIntentFilters": ["text/plain", "image/*"],
+          "androidMultiIntentFilters": ["image/*"],
+          "iosShareExtensionName": "ShareExtension",
+          "maxSharedItems": 10,
+          "maxSharedFileSize": 52428800,
+          "maxSharedTotalSize": 157286400
+        }
+      ]
+    ]
+  }
+}
+```
+
+## Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `androidIntentFilters` | text, image, video, audio, application wildcards | MIME types accepted for `ACTION_SEND` |
+| `androidMultiIntentFilters` | image, video, audio, application wildcards | MIME types accepted for `ACTION_SEND_MULTIPLE` |
+| `iosActivationRules` | text, URL, up to 10 images/movies/files | Activation-rule dictionary or predicate string |
+| `iosAppGroupIdentifier` | `group.<bundleIdentifier>` | Shared container used by app and extension |
+| `iosShareExtensionName` | `ShareExtension` | Xcode target and display name |
+| `iosShareExtensionBundleIdentifier` | `<bundleIdentifier>.share` | Extension bundle ID |
+| `iosDeploymentTarget` | `16.4` | Extension deployment target; cannot be lower than 16.4 |
+| `iosOpenHostAppAfterShare` | `false` | Best-effort host opening after a successful share |
+| `iosHostUrlScheme` | `expo.scheme` | URL scheme used when auto-open is enabled |
+| `maxSharedItems` | `20` | Maximum item providers handled per share |
+| `maxSharedFileSize` | `104857600` | Maximum bytes copied for one attachment (100 MiB) |
+| `maxSharedTotalSize` | `262144000` | Aggregate bytes copied for one share (250 MiB) |
+
+## Validation
+
+The plugin rejects:
+
+- malformed Android MIME types;
+- empty target names;
+- invalid bundle/App Group identifiers;
+- non-positive or out-of-range limits;
+- aggregate limits smaller than the per-file limit;
+- iOS deployment targets below 16.4;
+- unsafe `TRUEPREDICATE` activation rules.
+
+An iOS bundle identifier is required because extension and App Group defaults are derived from it.
+
+## Existing native projects
+
+The plugin targets Expo prebuild/Continuous Native Generation. If native projects are committed and manually maintained, run prebuild in a disposable branch and review target, entitlement, build-phase, and manifest changes before adopting them.

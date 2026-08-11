@@ -1,0 +1,71 @@
+---
+sidebar_position: 1
+title: How it works
+description: Understand the native intake, durable queue, and JavaScript processing layers.
+---
+
+# How it works
+
+Native share flows begin outside your React Native runtime. `expo-share-content` separates intake, persistence, and application processing so JavaScript startup timing does not decide whether content is delivered.
+
+## The three layers
+
+### 1. Native integration
+
+The Expo config plugin mutates generated native projects during prebuild:
+
+- Android receives `ACTION_SEND` and `ACTION_SEND_MULTIPLE` intent filters.
+- iOS receives a native Share Extension target, App Group entitlements, activation rules, generated Swift source, and EAS extension metadata.
+
+The plugin is designed for Expo prebuild and Continuous Native Generation. If your repository permanently maintains `ios/` or `android/`, review the generated diff before replacing native files.
+
+### 2. Durable intake
+
+| Platform | Intake path | Persistence |
+| --- | --- | --- |
+| Android | Launch intent + `onNewIntent` | Atomic queue file and app no-backup attachment storage |
+| iOS | `NSExtensionItem` / `NSItemProvider` | Atomic JSON records and attachments in the shared App Group |
+| Web | No native intake | Safe no-op results |
+
+Temporary provider data is copied before the source app revokes URI or file-provider access. A single native share operation becomes one `SharePayload` containing one or more normalized items.
+
+### 3. JavaScript processing
+
+Your app can consume payloads through both:
+
+- **Pending APIs** for cold starts and retryable processing.
+- **Live events** for low-latency delivery while JavaScript is active.
+
+Both paths use the same payload contract. They can surface the same stable ID, so application processing must be idempotent.
+
+## Payload shape
+
+```ts
+export type SharePayload = {
+  id: string;
+  timestamp: number;
+  source: 'share-sheet';
+  title?: string;
+  items: SharedContentItem[];
+};
+
+export type SharedContentItem = {
+  id: string;
+  type: 'text' | 'url' | 'image' | 'video' | 'audio' | 'file';
+  mimeType: string | null;
+  text?: string;
+  uri?: string;
+  fileName?: string;
+  size?: number;
+};
+```
+
+Text and URL items use `text`. Binary items use a module-managed `file://` URI and may expose filename, MIME type, and byte size.
+
+## Platform boundaries
+
+- The module receives content; it does not provide an outbound share API.
+- The module does not upload in the background.
+- Expo Go cannot contain the generated native integration.
+- iOS host auto-open is opt-in and best effort, not guaranteed continuation.
+- Permanent attachment retention belongs to the consuming application.
