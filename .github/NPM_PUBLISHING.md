@@ -35,7 +35,10 @@ By default, only the GitHub repository owner can authorize npm publishing. To al
 ngocdevv,another-maintainer
 ```
 
-The pull-request author cannot authorize their own release.
+The pull-request author's own review is never counted. For a solo-maintainer
+repository, an allowed npm approver can authorize the release by deliberately
+merging the PR; the workflow checks `pull_request.merged_by` against the same
+`NPM_APPROVERS` allowlist.
 
 ## Versioning
 
