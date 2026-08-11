@@ -23,3 +23,29 @@ for (const target of SUBTARGETS) {
     run('tsc', ['--build', targetDir]);
   }
 }
+
+const entry = path.join(process.cwd(), 'build', 'index.js');
+const marker = '// CommonJS facade: require/default import returns the API; named exports stay properties.';
+if (fs.existsSync(entry) && !fs.readFileSync(entry, 'utf8').includes(marker)) {
+  fs.appendFileSync(
+    entry,
+    [
+      '',
+      marker,
+      'const expoShareContentDefault = exports.default;',
+      "if (expoShareContentDefault && (typeof expoShareContentDefault === 'object' || typeof expoShareContentDefault === 'function')) {",
+      '  Object.assign(expoShareContentDefault, exports);',
+      '  module.exports = expoShareContentDefault;',
+      '  module.exports.addShareErrorListener = expoShareContentDefault.addShareErrorListener;',
+      '  module.exports.addShareListener = expoShareContentDefault.addShareListener;',
+      '  module.exports.clearPendingSharesAsync = expoShareContentDefault.clearPendingSharesAsync;',
+      '  module.exports.getInitialShareAsync = expoShareContentDefault.getInitialShareAsync;',
+      '  module.exports.getPendingSharesAsync = expoShareContentDefault.getPendingSharesAsync;',
+      '  module.exports.releaseSharedFilesAsync = expoShareContentDefault.releaseSharedFilesAsync;',
+      '  module.exports.createShareContentApi = exports.createShareContentApi;',
+      '  module.exports.dedupeShares = exports.dedupeShares;',
+      '}',
+      '',
+    ].join('\n')
+  );
+}

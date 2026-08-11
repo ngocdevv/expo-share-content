@@ -1,9 +1,11 @@
 import { NativeModule, requireNativeModule } from 'expo';
 
-import { ExpoShareContentModuleEvents } from './ExpoShareContent.types';
+import type { ExpoShareContentModuleEvents, SharePayload } from './ExpoShareContent.types';
 
 declare class ExpoShareContentModule extends NativeModule<ExpoShareContentModuleEvents> {
-  setValueAsync(value: string): Promise<void>;
+  getPendingSharesAsync(): Promise<SharePayload[]>;
+  clearPendingSharesAsync(shareIds: string[] | null): Promise<void>;
+  releaseSharedFilesAsync(shareIds: string[]): Promise<void>;
 }
 
 export default requireNativeModule<ExpoShareContentModule>('ExpoShareContent');

@@ -19,14 +19,32 @@ if (SUBTARGETS.includes(target)) {
   tscArgs = [...args];
 }
 
-if (
-  process.stdout.isTTY &&
-  !process.env.CI &&
-  !process.env.EXPO_NONINTERACTIVE &&
-  !tscArgs.includes('--watch')
-) {
-  tscArgs.push('--watch');
-}
-
 const result = spawnSyncWithAutoShell('tsc', tscArgs, { stdio: 'inherit' });
+if ((result.status ?? 0) === 0) {
+  const entry = path.join(process.cwd(), 'build', 'index.js');
+  const marker = '// CommonJS facade: require/default import returns the API; named exports stay properties.';
+  if (fs.existsSync(entry) && !fs.readFileSync(entry, 'utf8').includes(marker)) {
+    fs.appendFileSync(
+      entry,
+      [
+        '',
+        marker,
+        'const expoShareContentDefault = exports.default;',
+        "if (expoShareContentDefault && (typeof expoShareContentDefault === 'object' || typeof expoShareContentDefault === 'function')) {",
+        '  Object.assign(expoShareContentDefault, exports);',
+        '  module.exports = expoShareContentDefault;',
+        '  module.exports.addShareErrorListener = expoShareContentDefault.addShareErrorListener;',
+        '  module.exports.addShareListener = expoShareContentDefault.addShareListener;',
+        '  module.exports.clearPendingSharesAsync = expoShareContentDefault.clearPendingSharesAsync;',
+        '  module.exports.getInitialShareAsync = expoShareContentDefault.getInitialShareAsync;',
+        '  module.exports.getPendingSharesAsync = expoShareContentDefault.getPendingSharesAsync;',
+        '  module.exports.releaseSharedFilesAsync = expoShareContentDefault.releaseSharedFilesAsync;',
+        '  module.exports.createShareContentApi = exports.createShareContentApi;',
+        '  module.exports.dedupeShares = exports.dedupeShares;',
+        '}',
+        '',
+      ].join('\n')
+    );
+  }
+}
 process.exit(result.status ?? 0);

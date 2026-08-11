@@ -1,11 +1,22 @@
 {
   "expo": {
-    "name": "expo-share-content-scaffold-example",
-    "slug": "expo-share-content-scaffold-example",
+    "name": "Expo Share Content Example",
+    "slug": "expo-share-content-example",
     "version": "1.0.0",
+    "scheme": "expo-share-content-example",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-share-content",
+        {
+          "androidIntentFilters": ["text/*", "image/*", "video/*", "audio/*", "application/*"],
+          "androidMultiIntentFilters": ["image/*", "video/*", "audio/*", "application/*"],
+          "iosShareExtensionName": "Share to Example"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "expo.modules.sharecontent.example"
@@ -19,9 +30,6 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "expo.modules.sharecontent.example"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     }
   }
 }

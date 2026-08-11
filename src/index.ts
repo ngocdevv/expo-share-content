@@ -1,4 +1,6 @@
-// Reexport the native module. On web, it will be resolved to ExpoShareContentModule.web.ts
-// and on native platforms to ExpoShareContentModule.ts
-export { default } from './ExpoShareContentModule';
+export { default } from './ExpoShareContent';
+export * from './ExpoShareContent';
 export * from './ExpoShareContent.types';
+export { createShareContentApi } from './createShareContentApi';
+export type { ShareContentApi, ShareContentNativeModule } from './createShareContentApi';
+export * from './share-utils';
