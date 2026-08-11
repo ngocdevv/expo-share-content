@@ -85,8 +85,10 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22.14.0
-          cache: npm
           registry-url: https://registry.npmjs.org
+
+      - name: Install npm with Trusted Publishing support
+        run: npm install --global npm@12.0.2
 
       - name: Install dependencies
         run: npm ci
@@ -120,12 +122,8 @@ jobs:
       - name: Pack the audited artifact
         id: pack
         if: steps.version.outputs.should_publish == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          test -n "${NODE_AUTH_TOKEN:-}"
-          npm whoami
           mkdir npm-artifact
           npm pack --pack-destination npm-artifact
           set -- npm-artifact/*.tgz
@@ -136,8 +134,6 @@ jobs:
 
       - name: Publish to npm with provenance
         if: steps.version.outputs.should_publish == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish "${{ steps.pack.outputs.tarball }}" --access public --provenance
 
       - name: Write job summary

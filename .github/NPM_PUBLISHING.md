@@ -8,17 +8,24 @@ The workflow in `workflows/publish-npm.yml` publishes only after a pull request:
 4. passes tests, lint, build, CommonJS verification, and generated-output checks; and
 5. contains a package version that does not already exist on npm.
 
-## Required repository secret
+## npm Trusted Publishing
 
-Create an npm granular access token with read/write access to `expo-share-content`, then add it as this GitHub Actions repository secret:
+The package uses npm Trusted Publishing with OpenID Connect. No npm token or
+GitHub Actions secret is required.
+
+The npm package connection is restricted to:
 
 ```text
-NPM_TOKEN
+Provider: GitHub Actions
+Repository: ngocdevv/React-Native-Share-Content
+Workflow: publish-npm.yml
+Allowed action: npm publish
 ```
 
-Use an expiring granular token and enable the npm option that permits CI publishing when the account requires two-factor authentication. Never commit the token or place it in a repository variable.
-
-For the first publication, npm may require a manual publish before package-scoped granular permissions or Trusted Publishing can be configured. After the package exists, prefer configuring npm Trusted Publishing for this repository/workflow and removing the long-lived token.
+The workflow grants `id-token: write`, runs on a GitHub-hosted runner, and installs
+npm 12.0.2 because Trusted Publishing requires npm 11.5.1 or later with Node
+22.14.0 or later. The npm package setting disallows bypass-2FA token publishing;
+the configured OIDC publisher remains allowed.
 
 ## Allowed approvers
 
