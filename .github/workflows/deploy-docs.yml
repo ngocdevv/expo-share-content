@@ -1,6 +1,12 @@
 name: Deploy documentation
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/deploy-docs.yml"
   push:
     branches:
       - main
@@ -13,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: github-pages
+  group: github-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,9 +37,6 @@ jobs:
           cache: npm
           cache-dependency-path: docs/package-lock.json
           package-manager-cache: false
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Install documentation dependencies
         working-directory: docs
@@ -54,6 +57,7 @@ jobs:
 
   deploy:
     name: Deploy documentation
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

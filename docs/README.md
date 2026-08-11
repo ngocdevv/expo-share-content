@@ -25,9 +25,9 @@ The static output is written to `docs/build/` and is configured for GitHub Pages
 
 ## Deployment
 
-`.github/workflows/deploy-docs.yml` builds and deploys the production artifact when a
-documentation change reaches `main`. In the repository settings, configure **Pages → Build and
-deployment → Source** to **GitHub Actions** before the first deployment.
+`.github/workflows/deploy-docs.yml` validates pull requests, then builds and deploys the production
+artifact when a documentation change reaches `main`. In the repository settings, configure
+**Pages → Build and deployment → Source** to **GitHub Actions** before the first deployment.
 
 Documentation source lives in `docs/docs/`. The custom landing page is implemented in
 `src/pages/index.tsx`; global design tokens and Docusaurus overrides live in
