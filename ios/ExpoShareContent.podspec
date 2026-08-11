@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
   s.summary        = 'Receive content shared to an Expo app.'
   s.description    = 'An Expo Module for receiving text, URLs, images, videos, audio, and files from the system share sheet.'
   s.author         = 'ngocdevv'
-  s.homepage       = 'https://www.npmjs.com/package/expo-share-content'
+  s.homepage       = 'https://github.com/ngocdevv/expo-share-content'
   s.license        = { :type => 'MIT', :file => '../LICENSE' }
   s.platforms      = { :ios => '16.4' }
   s.source         = { :http => "https://registry.npmjs.org/expo-share-content/-/expo-share-content-#{s.version}.tgz" }
