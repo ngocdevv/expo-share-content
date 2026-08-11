@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Files">
+  <defs>
+    <linearGradient id="filesBg" x1="0.18" y1="0" x2="0.82" y2="1">
+      <stop offset="0%" stop-color="#64B5FF"/>
+      <stop offset="48%" stop-color="#0A84FF"/>
+      <stop offset="100%" stop-color="#0055D4"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EAF1FB"/>
+    </linearGradient>
+    <linearGradient id="folder" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E7EEF9"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="26.5" fill="url(#filesBg)"/>
+  <!-- Stacked papers -->
+  <g>
+    <rect x="38" y="26" width="46" height="58" rx="7" fill="url(#paper)" transform="rotate(-10 61 55)" opacity="0.92"/>
+    <rect x="40" y="28" width="46" height="58" rx="7" fill="url(#paper)" transform="rotate(8 63 57)"/>
+  </g>
+  <!-- Folder in front -->
+  <path
+    d="M24 52h18c2.2 0 3.4-1.1 4.5-2.6L50.4 44c1.1-1.5 2.2-2.4 4.4-2.4H90c5.4 0 9 3.5 9 8.8v36.8c0 5.8-3.8 9.8-9.8 9.8H33.8c-6 0-9.8-4-9.8-9.8V60.8C24 55.5 27.5 52 33 52z"
+    fill="url(#folder)"
+    transform="translate(0 4)"
+  />
+  <path d="M24 62.5h75" stroke="#D3E0F5" stroke-width="2.5" transform="translate(0 4)"/>
+  <path d="M40 76h34M40 85h24" stroke="#AFC4E8" stroke-width="3.2" stroke-linecap="round" fill="none" transform="translate(0 4)"/>
+</svg>

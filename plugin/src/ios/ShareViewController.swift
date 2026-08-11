@@ -147,12 +147,10 @@ final class ShareViewController: UIViewController {
         items: sharedItems
       )
       try persist(payload)
-      // Queue delivery is already durable. Auto-open is optional and uses only
-      // NSExtensionContext.open; completion follows after a short best-effort window.
-      openHostApp(shareId: shareId)
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
-        self?.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
-      }
+      // Queue delivery is already durable. Auto-open is optional/best-effort only.
+      // Await the open attempt before tearing the extension down via completeRequest.
+      await openHostApp(shareId: shareId)
+      extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
     } catch {
       cleanupFiles(shareId: shareId)
       presentError(error.localizedDescription)
@@ -161,11 +159,33 @@ final class ShareViewController: UIViewController {
 
   /// Best-effort jump back to the containing app after a successful share commit.
   /// Disabled when hostOpenURLString is empty (the default for App Store–safe installs).
-  /// Uses only NSExtensionContext.open — Apple does not guarantee Share Extensions can
-  /// foreground the containing app, and private UIApplication lookup is intentionally avoided.
-  private func openHostApp(shareId: String) {
+  ///
+  /// Apple does not guarantee that a Share Extension can foreground its containing app.
+  /// When enabled (non-empty hostOpenURLString), try public-ish strategies in order:
+  /// 1. UIApplication.open via the shared application (runtime lookup — extension-safe)
+  /// 2. Responder-chain openURL selectors used by many production share extensions
+  /// 3. NSExtensionContext.open (often rejects custom schemes)
+  ///
+  /// Queue delivery never depends on open success.
+  @MainActor
+  private func openHostApp(shareId: String) async {
     guard let url = hostOpenURL(shareId: shareId) else { return }
-    extensionContext?.open(url, completionHandler: { _ in })
+
+    if await openURLViaSharedApplication(url) {
+      // Give the system a brief moment to switch before the extension exits.
+      try? await Task.sleep(nanoseconds: 200_000_000)
+      return
+    }
+
+    if openURLViaResponderChain(url) {
+      try? await Task.sleep(nanoseconds: 250_000_000)
+      return
+    }
+
+    let opened = await openURLViaExtensionContext(url)
+    if opened {
+      try? await Task.sleep(nanoseconds: 200_000_000)
+    }
   }
 
   private func hostOpenURL(shareId: String) -> URL? {
@@ -184,6 +204,64 @@ final class ShareViewController: UIViewController {
     }
     components.queryItems = queryItems
     return components.url
+  }
+
+  /// Runtime lookup of UIApplication.shared. Direct `UIApplication.shared` is unavailable
+  /// in app-extension targets at compile time; the selector path keeps the target building.
+  @MainActor
+  private func openURLViaSharedApplication(_ url: URL) async -> Bool {
+    let selector = NSSelectorFromString("sharedApplication")
+    guard UIApplication.responds(to: selector),
+          let application = UIApplication.perform(selector)?.takeUnretainedValue() as? UIApplication
+    else {
+      return false
+    }
+
+    return await withCheckedContinuation { continuation in
+      application.open(url, options: [:]) { success in
+        continuation.resume(returning: success)
+      }
+    }
+  }
+
+  /// Walk the responder chain for openURL selectors. Returns true if a responder accepted the call.
+  @MainActor
+  private func openURLViaResponderChain(_ url: URL) -> Bool {
+    let modern = Selector(("openURL:options:completionHandler:"))
+    let legacy = Selector(("openURL:"))
+    var responder: UIResponder? = self
+
+    while let current = responder {
+      if current.responds(to: modern) {
+        typealias OpenURLOptionsHandler = @convention(c) (
+          Any, Selector, URL, NSDictionary, ((Bool) -> Void)?
+        ) -> Void
+        let imp = current.method(for: modern)
+        let open = unsafeBitCast(imp, to: OpenURLOptionsHandler.self)
+        open(current, modern, url, [:], nil)
+        return true
+      }
+      if current.responds(to: legacy) {
+        typealias OpenURLHandler = @convention(c) (Any, Selector, URL) -> Bool
+        let imp = current.method(for: legacy)
+        let open = unsafeBitCast(imp, to: OpenURLHandler.self)
+        if open(current, legacy, url) {
+          return true
+        }
+      }
+      responder = current.next
+    }
+    return false
+  }
+
+  @MainActor
+  private func openURLViaExtensionContext(_ url: URL) async -> Bool {
+    guard let context = extensionContext else { return false }
+    return await withCheckedContinuation { continuation in
+      context.open(url) { success in
+        continuation.resume(returning: success)
+      }
+    }
   }
 
   private func load(provider: NSItemProvider, shareId: String) async throws -> SharedItem? {

@@ -13,14 +13,13 @@ Receive text, URLs, images, videos, audio, and files shared **into** an Expo app
 | --- | --- | --- |
 | Android | `ACTION_SEND`, `ACTION_SEND_MULTIPLE` | Intent filters + activity lifecycle listener |
 | iOS | Share Extension | App Group queue |
-| Web | Safe no-op | Importing the package does not throw |
 
-Current baseline: Expo SDK 57, React Native 0.86, Android API 24+, and iOS 16.4+.
+Current baseline: Expo SDK 57, React Native 0.86, Android API 24+, and iOS 16.4+. Web is not supported.
 
 ## How it works
 
 - **Android:** the config plugin adds share intent filters to the main activity. A lifecycle listener captures the launch intent, while the Expo Module handles new intents. Attachment permissions are temporary, so the module copies incoming `content://` data into app-owned no-backup storage before exposing a `file://` URI.
-- **iOS:** the config plugin creates a native-only Share Extension target. The extension streams file representations into a shared App Group container with a byte limit, atomically commits one JSON queue file per share, then completes the extension request. Opening the host app after share is **opt-in** (`iosOpenHostAppAfterShare`) and best-effort only via `NSExtensionContext.open` — Apple does not guarantee Share Extensions can foreground the containing app. The host Expo Module reads the queue when the app becomes active; records remain pending until explicit acknowledgement.
+- **iOS:** the config plugin creates a native-only Share Extension target. The extension streams file representations into a shared App Group container with a byte limit, atomically commits one JSON queue file per share, then completes the extension request. Opening the host app after share is **opt-in** (`iosOpenHostAppAfterShare`) and best-effort only (runtime `UIApplication.open`, responder-chain `openURL`, then `NSExtensionContext.open`) — Apple does not guarantee Share Extensions can foreground the containing app. The host Expo Module reads the queue when the app becomes active; records remain pending until explicit acknowledgement.
 - **JavaScript:** pending APIs protect cold-start data from being lost before the JS runtime is ready. Live events make warm-start handling immediate.
 
 Delivery is **at least once**. A cold-start query and a live event can refer to the same payload; use the stable `payload.id` to make your handler idempotent. Android does not expose a trustworthy operation identifier for arbitrary `ACTION_SEND` callers, so a task restored after process death can deliver the same source Intent again under a new payload ID. Prefer duplicate delivery over dropping a separate share that happens to contain identical text or URIs.
@@ -217,7 +216,7 @@ A single payload represents one share operation, so an Android `SEND_MULTIPLE` i
 | `iosShareExtensionName` | `ShareExtension` | Xcode target and display name |
 | `iosShareExtensionBundleIdentifier` | `<bundleIdentifier>.share` | Extension bundle ID |
 | `iosDeploymentTarget` | `16.4` | Extension deployment target; cannot be below 16.4 |
-| `iosOpenHostAppAfterShare` | `false` | Opt-in best-effort open of the host app after a successful share via `NSExtensionContext.open`. Not App Store–guaranteed |
+| `iosOpenHostAppAfterShare` | `false` | Opt-in best-effort open of the host app after a successful share (UIApplication / responder-chain / `NSExtensionContext.open`). Not guaranteed by Apple |
 | `iosHostUrlScheme` | `expo.scheme` | URL scheme used when auto-open is enabled (`"myapp"` → `myapp://share?shareId=…`) |
 | `maxSharedItems` | `20` | Maximum item providers handled per share; must be `1...2147483647` |
 | `maxSharedFileSize` | `104857600` | Maximum bytes copied for one attachment (100 MiB); must be `1...2147483647` |
@@ -257,16 +256,13 @@ The plugin validates MIME syntax, positive limits, identifiers, and deployment t
 
 - A main-app native module alone cannot appear in the iOS share sheet; the generated Share Extension is required.
 - Binary/media attachments use `loadFileRepresentation` with 64 KiB streaming. Text/URL values use `loadDataRepresentation` and are rejected above the 256 KiB text cap before decoding.
-- By default the extension does **not** auto-open the host app. Queue delivery is independent of auto-open. If you set `iosOpenHostAppAfterShare: true`, the extension only attempts the public `NSExtensionContext.open` path as best effort.
+- By default the extension does **not** auto-open the host app. Queue delivery is independent of auto-open. If you set `iosOpenHostAppAfterShare: true`, the extension attempts a best-effort open chain and awaits it before `completeRequest`.
 - App Group and extension provisioning must exist for device/App Store builds. Simulator builds do not prove production signing is configured.
 - If you change the bundle ID, App Group, or extension name, run a clean prebuild.
 
-### Web
-
-The web implementation returns empty arrays, returns `null` for the initial share, and provides removable no-op subscriptions.
-
 ## Limitations
 
+- Android and iOS only; web is not supported.
 - No Expo Go support.
 - No outbound share API; use React Native's `Share` API or another package to send content out of the app.
 - No background upload or permanent file management.

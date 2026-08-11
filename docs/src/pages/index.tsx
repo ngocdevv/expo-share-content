@@ -40,9 +40,9 @@ const features = [
   },
   {
     number: '06',
-    title: 'Web-safe by default',
-    body: 'Import the same package on web without guards. The web module preserves the API surface with safe no-ops.',
-    tag: 'Universal import',
+    title: 'Best-effort iOS return',
+    body: 'Keep queue delivery independent of foregrounding. Opt into iosOpenHostAppAfterShare only when you want a best-effort return to the host app.',
+    tag: 'iOS optional',
   },
 ];
 
@@ -55,7 +55,7 @@ const faqs = [
   {
     question: 'Will an iOS share always open my app?',
     answer:
-      'No. Queue delivery is reliable, but foregrounding the containing app is not guaranteed by iOS. Auto-open is opt-in and uses only the public NSExtensionContext.open API as a best-effort attempt.',
+      'No. Queue delivery is reliable, but foregrounding the containing app is not guaranteed by iOS. Auto-open is opt-in and uses a best-effort open chain (UIApplication / responder-chain / NSExtensionContext.open).',
   },
   {
     question: 'Can the same payload appear twice?',
@@ -127,16 +127,34 @@ function ShareFlow() {
     <div className={styles.shareFlow} aria-label="Shared content delivery flow">
       <div className={styles.flowGlow} />
       <div className={styles.sourceStack}>
-        <div className={clsx(styles.sourceApp, styles.photosApp)}>
-          <span className={styles.photosGlyph}>✦</span>
+        <div className={styles.sourceApp}>
+          <img
+            className={styles.sourceIcon}
+            src="img/app-icon-photos.svg"
+            alt=""
+            width={40}
+            height={40}
+          />
           <span>Photos</span>
         </div>
-        <div className={clsx(styles.sourceApp, styles.safariApp)}>
-          <span className={styles.safariGlyph}>↗</span>
+        <div className={styles.sourceApp}>
+          <img
+            className={styles.sourceIcon}
+            src="img/app-icon-safari.svg"
+            alt=""
+            width={40}
+            height={40}
+          />
           <span>Safari</span>
         </div>
-        <div className={clsx(styles.sourceApp, styles.filesApp)}>
-          <span className={styles.filesGlyph}>▰</span>
+        <div className={styles.sourceApp}>
+          <img
+            className={styles.sourceIcon}
+            src="img/app-icon-files.svg"
+            alt=""
+            width={40}
+            height={40}
+          />
           <span>Files</span>
         </div>
       </div>
@@ -180,22 +198,18 @@ function ShareFlow() {
       </div>
 
       <div className={styles.phone}>
-        <div className={styles.phoneBar} />
-        <div className={styles.phoneScreen}>
-          <div className={styles.appHeader}>
-            <img src="img/logo.svg" alt="" />
-            <span>Inbox</span>
-          </div>
-          <p>New share received</p>
-          <div className={styles.payloadCard}>
-            <span>payload.items</span>
-            <strong>2 items</strong>
-            <small>stable ID · acknowledged</small>
-          </div>
-          <div className={styles.phoneAction}>
-            <CheckIcon /> Imported safely
-          </div>
-        </div>
+        <picture>
+          <source srcSet="img/demo-share-received.webp" type="image/webp" />
+          <img
+            className={styles.phoneShot}
+            src="img/demo-share-received.png"
+            alt="Real Expo Share Content example: an image shared from Photos appears with preview, filename, size, and App Group file URI"
+            width={552}
+            height={1200}
+            decoding="async"
+            loading="eager"
+          />
+        </picture>
       </div>
     </div>
   );
@@ -424,16 +438,6 @@ export default function Home(): React.ReactNode {
                   extension source during prebuild.
                 </p>
                 <Link to="/docs/platforms/ios">iOS guide <ArrowIcon /></Link>
-              </article>
-              <article>
-                <div className={clsx(styles.platformIcon, styles.webIcon)}>W</div>
-                <p className={styles.platformName}>Web</p>
-                <h3>Safe imports, predictable no-ops.</h3>
-                <p>
-                  Keep universal modules importable without runtime guards while preserving the
-                  same typed method surface.
-                </p>
-                <Link to="/docs/platforms/web">Web behavior <ArrowIcon /></Link>
               </article>
             </div>
           </div>

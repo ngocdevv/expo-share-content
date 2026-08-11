@@ -11,7 +11,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Platforms',
-      items: ['platforms/android', 'platforms/ios', 'platforms/web'],
+      items: ['platforms/android', 'platforms/ios'],
     },
     'configuration',
     'api-reference',

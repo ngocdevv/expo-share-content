@@ -13,7 +13,8 @@
         {
           "androidIntentFilters": ["text/*", "image/*", "video/*", "audio/*", "application/*"],
           "androidMultiIntentFilters": ["image/*", "video/*", "audio/*", "application/*"],
-          "iosShareExtensionName": "Share to Example"
+          "iosShareExtensionName": "Share to Example",
+          "iosOpenHostAppAfterShare": true
         }
       ]
     ],

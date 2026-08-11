@@ -64,7 +64,7 @@ Set it to `true` only if you want a best-effort foreground attempt:
 }
 ```
 
-The extension uses only the public `NSExtensionContext.open` path. Apple does not guarantee that a Share Extension can foreground its containing app. Queue delivery does not depend on auto-open.
+When enabled, the extension attempts a short best-effort chain after the queue commit: runtime `UIApplication.open`, responder-chain `openURL` selectors, then `NSExtensionContext.open`. Apple still does not guarantee that a Share Extension can foreground its containing app. Queue delivery does not depend on auto-open success.
 
 ## Signing and EAS
 

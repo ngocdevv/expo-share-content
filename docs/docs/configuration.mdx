@@ -25,6 +25,8 @@ Pass options as the second item in the Expo config-plugin tuple.
           "androidIntentFilters": ["text/plain", "image/*"],
           "androidMultiIntentFilters": ["image/*"],
           "iosShareExtensionName": "ShareExtension",
+          "iosOpenHostAppAfterShare": false,
+          "iosHostUrlScheme": "myapp",
           "maxSharedItems": 10,
           "maxSharedFileSize": 52428800,
           "maxSharedTotalSize": 157286400
@@ -46,11 +48,28 @@ Pass options as the second item in the Expo config-plugin tuple.
 | `iosShareExtensionName` | `ShareExtension` | Xcode target and display name |
 | `iosShareExtensionBundleIdentifier` | `<bundleIdentifier>.share` | Extension bundle ID |
 | `iosDeploymentTarget` | `16.4` | Extension deployment target; cannot be lower than 16.4 |
-| `iosOpenHostAppAfterShare` | `false` | Best-effort host opening after a successful share |
-| `iosHostUrlScheme` | `expo.scheme` | URL scheme used when auto-open is enabled |
+| `iosOpenHostAppAfterShare` | `false` | After a successful share commit, attempt a best-effort open of the host app via URL scheme. Opt-in only; Apple does not guarantee Share Extensions can foreground the containing app. Queue delivery still works when opening fails. |
+| `iosHostUrlScheme` | `expo.scheme` | URL scheme used when `iosOpenHostAppAfterShare` is `true` (for example `myapp` or `myapp://share`) |
 | `maxSharedItems` | `20` | Maximum item providers handled per share |
 | `maxSharedFileSize` | `104857600` | Maximum bytes copied for one attachment (100 MiB) |
 | `maxSharedTotalSize` | `262144000` | Aggregate bytes copied for one share (250 MiB) |
+
+## iOS host auto-open
+
+`iosOpenHostAppAfterShare` controls whether the Share Extension tries to return to your app after writing the App Group queue:
+
+```json
+{
+  "iosOpenHostAppAfterShare": true,
+  "iosHostUrlScheme": "myapp"
+}
+```
+
+- Default is `false` — the user stays in the source app (Photos, Safari, …) and can open your app later; pending shares remain durable.
+- Set `true` only when you want a best-effort foreground attempt. Pair it with `expo.scheme` or an explicit `iosHostUrlScheme` that is registered on the host.
+- Re-run `npx expo prebuild` and rebuild the native app after changing this flag.
+
+Platform details and the open-chain behavior are documented under [Opening the host app](./platforms/ios#opening-the-host-app).
 
 ## Validation
 

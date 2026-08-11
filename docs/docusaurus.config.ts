@@ -114,7 +114,6 @@ const config: Config = {
           items: [
             {label: 'Android', to: '/docs/platforms/android'},
             {label: 'iOS', to: '/docs/platforms/ios'},
-            {label: 'Web', to: '/docs/platforms/web'},
           ],
         },
         {

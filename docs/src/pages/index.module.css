@@ -209,7 +209,7 @@
 .shareFlow {
   align-items: center;
   display: grid;
-  grid-template-columns: 96px 50px minmax(250px, 1fr) 42px 170px;
+  grid-template-columns: 96px 50px minmax(250px, 1fr) 42px 210px;
   min-height: 610px;
   perspective: 1200px;
   position: relative;
@@ -245,34 +245,22 @@
   flex-direction: column;
   font-size: 10px;
   font-weight: 700;
-  gap: 6px;
+  gap: 7px;
   height: 78px;
   justify-content: center;
   transform: rotateY(8deg);
   width: 82px;
 }
 
-.sourceApp > span:first-child {
-  align-items: center;
-  border-radius: 11px;
-  color: white;
-  display: flex;
-  font-size: 22px;
-  height: 38px;
-  justify-content: center;
-  width: 38px;
-}
-
-.photosGlyph {
-  background: conic-gradient(#ff6b6b, #ffcf5c, #67d98a, #66a8ff, #ae72ff, #ff6b9c, #ff6b6b);
-}
-
-.safariGlyph {
-  background: linear-gradient(145deg, #72c8ff, #3974f0);
-}
-
-.filesGlyph {
-  background: linear-gradient(145deg, #6d7aff, #4d58dc);
+.sourceIcon {
+  border-radius: 10px;
+  box-shadow:
+    0 4px 10px rgba(35, 48, 92, 0.16),
+    0 0 0 0.5px rgba(15, 23, 42, 0.06);
+  display: block;
+  height: 40px;
+  object-fit: cover;
+  width: 40px;
 }
 
 .flowLine,
@@ -401,8 +389,7 @@
   white-space: nowrap;
 }
 
-.queueItem small,
-.payloadCard small {
+.queueItem small {
   color: #8a8e9d;
   font-size: 9px;
   margin-top: 2px;
@@ -442,100 +429,23 @@
 }
 
 .phone {
-  background: #171922;
-  border: 5px solid #2b2e39;
-  border-radius: 34px;
-  box-shadow: 0 28px 70px rgba(23, 27, 53, 0.25);
-  min-height: 340px;
+  background: #0f1117;
+  border: 4px solid #1f2330;
+  border-radius: 36px;
+  box-shadow:
+    0 28px 70px rgba(23, 27, 53, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
   overflow: hidden;
-  padding: 9px;
   position: relative;
   transform: rotate(2.5deg);
+  width: 100%;
   z-index: 2;
 }
 
-.phoneBar {
-  background: #101117;
-  border-radius: 999px;
-  height: 16px;
-  left: 50%;
-  position: absolute;
-  top: 11px;
-  transform: translateX(-50%);
-  width: 58px;
-  z-index: 2;
-}
-
-.phoneScreen {
-  background: linear-gradient(180deg, #f7f7fb, #e8ebff);
-  border-radius: 23px;
-  min-height: 312px;
-  padding: 37px 12px 15px;
-}
-
-.appHeader {
-  align-items: center;
-  display: flex;
-  font-size: 11px;
-  font-weight: 750;
-  gap: 7px;
-}
-
-.appHeader img {
-  border-radius: 7px;
-  height: 24px;
-  width: 24px;
-}
-
-.phoneScreen > p {
-  color: #737789;
-  font-size: 9px;
-  margin: 22px 0 8px;
-}
-
-.payloadCard {
-  background: white;
-  border: 1px solid #dfe2f0;
-  border-radius: 13px;
-  box-shadow: 0 10px 22px rgba(66, 72, 115, 0.08);
-  display: flex;
-  flex-direction: column;
-  padding: 13px;
-}
-
-.payloadCard span {
-  color: #686c7b;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 8px;
-}
-
-.payloadCard strong {
-  font-size: 14px;
-  margin-top: 7px;
-}
-
-.phoneAction {
-  align-items: center;
-  background: #11131a;
-  border-radius: 10px;
-  color: white;
-  display: flex;
-  font-size: 9px;
-  font-weight: 700;
-  gap: 7px;
-  justify-content: center;
-  margin-top: 68px;
-  padding: 10px;
-}
-
-.phoneAction svg {
-  fill: none;
-  height: 12px;
-  stroke: #9ba5ff;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-  width: 12px;
+.phoneShot {
+  display: block;
+  height: auto;
+  width: 100%;
 }
 
 .contentStrip {
@@ -965,7 +875,7 @@
 .platformGrid {
   display: grid;
   gap: 18px;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .platformGrid article {
@@ -997,11 +907,6 @@
 .appleIcon {
   background: #f0f1f4;
   color: #171922;
-}
-
-.webIcon {
-  background: #e8f8f0;
-  color: #208357;
 }
 
 .platformName {
@@ -1156,7 +1061,7 @@
   }
 
   .shareFlow {
-    grid-template-columns: 78px 34px minmax(220px, 1fr) 28px 145px;
+    grid-template-columns: 78px 34px minmax(220px, 1fr) 28px 180px;
   }
 
   .sourceApp {
@@ -1280,11 +1185,10 @@
     width: 58px;
   }
 
-  .sourceApp > span:first-child {
+  .sourceIcon {
     border-radius: 8px;
-    font-size: 16px;
-    height: 29px;
-    width: 29px;
+    height: 30px;
+    width: 30px;
   }
 
   .queueCard {
@@ -1297,12 +1201,11 @@
 
   .phone {
     bottom: -18px;
-    min-height: 250px;
     position: absolute;
     right: 8px;
-    transform: rotate(2.5deg) scale(0.78);
+    transform: rotate(2.5deg) scale(0.86);
     transform-origin: bottom right;
-    width: 154px;
+    width: 168px;
   }
 
   .contentStrip .container {

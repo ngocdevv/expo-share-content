@@ -54,12 +54,13 @@ describe('iOS Share Extension artifacts', () => {
     expect(swift).not.toMatch(/loadItem\(forTypeIdentifier:\s*UTType\.(image|movie|audio|fileURL)/);
     expect(swift).not.toContain('image.pngData()');
     expect(swift).not.toContain('copyItem(at: source');
-    // Default is queue-only continuation — no private UIApplication open path.
+    // Default is queue-only continuation: open helpers exist but hostOpenURLString is empty.
     expect(swift).toContain('openHostApp');
-    expect(swift).toContain('extensionContext?.open(url');
-    expect(swift).not.toContain('sharedApplication');
-    expect(swift).not.toContain('openURLViaSharedApplication');
-    expect(swift).not.toContain('unsafeBitCast');
+    expect(swift).toContain('openURLViaSharedApplication');
+    expect(swift).toContain('openURLViaResponderChain');
+    expect(swift).toContain('openURLViaExtensionContext');
+    expect(swift).toContain('await openHostApp(shareId: shareId)');
+    expect(swift).toContain('completeRequest(returningItems: nil, completionHandler: nil)');
     expect(swift).toContain('hostOpenURLString = ""');
     expect(swift).not.toMatch(/__[A-Z_]+__/);
   });
@@ -80,8 +81,10 @@ describe('iOS Share Extension artifacts', () => {
       resolveHostOpenURL('example', options)
     );
     expect(swift).toContain('example://share');
-    expect(swift).toContain('extensionContext?.open(url');
-    expect(swift).not.toContain('sharedApplication');
+    expect(swift).toContain('openURLViaSharedApplication');
+    expect(swift).toContain('openURLViaResponderChain');
+    expect(swift).toContain('openURLViaExtensionContext');
+    expect(swift).toContain('await openHostApp(shareId: shareId)');
     expect(swift).not.toMatch(/__[A-Z_]+__/);
   });
 

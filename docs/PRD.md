@@ -15,13 +15,13 @@ Expo applications need a reliable way to receive content from the native share s
 5. Support explicit per-payload acknowledgement.
 6. Expose typed Promise and event APIs.
 7. Configure native projects through an idempotent Expo config plugin.
-8. Be safe to import on web.
-9. Build and autolink with Expo SDK 57 conventions.
+8. Build and autolink with Expo SDK 57 conventions.
 
 ## 3. Non-goals
 
 - Sending content out of the app.
 - Running inside Expo Go.
+- Web / browser share targets.
 - Uploading shared content in the background.
 - Permanently managing attachment storage.
 - Guaranteeing that iOS foregrounds the host app after a share.
@@ -87,10 +87,6 @@ The event and pending APIs may surface the same stable ID. Consumers must make b
 7. The extension completes without using unsupported host-opening APIs; iOS delivery is queue-only.
 8. The host Expo Module reads or removes queue files and emits pending records when observing begins or the app becomes active.
 
-### 5.3 Web
-
-The web module is a no-op with the same method surface. Imports must not throw.
-
 ## 6. Config plugin requirements
 
 The plugin must:
@@ -139,12 +135,9 @@ The plugin must:
 - The host `ExpoShareContent` pod builds for the simulator.
 - A device-signed build verifies App Group provisioning and shares from Safari, Photos, and Files.
 
-### Web
-
-- The package can be imported and all APIs return safe no-op results.
-
 ## 9. Known constraints
 
+- Android and iOS only; web is not supported.
 - Expo Go cannot include the module or extension.
 - App Group and extension signing are external Apple Developer/EAS concerns.
 - iOS uses queue-only continuation and does not foreground the host from the Share Extension.

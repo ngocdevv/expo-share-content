@@ -19,6 +19,7 @@ Receive text, URLs, images, video, audio, and files shared **into** an Expo app.
 - Android API 24 or newer
 - iOS 16.4 or newer
 - An Expo project with `android.package` and `ios.bundleIdentifier`
+- Android and iOS only — web is not supported
 
 ## Install
 
@@ -44,7 +45,8 @@ Add platform identifiers and the package to your Expo configuration:
       [
         "expo-share-content",
         {
-          "iosShareExtensionName": "ShareExtension"
+          "iosShareExtensionName": "ShareExtension",
+          "iosOpenHostAppAfterShare": false
         }
       ]
     ]
@@ -53,6 +55,10 @@ Add platform identifiers and the package to your Expo configuration:
 ```
 
 The plugin adds Android share intent filters and creates a native iOS Share Extension target. You do not manually copy native source files into your project.
+
+:::tip Optional iOS return-to-host
+On iOS, shares stay durable in the App Group queue even if the host app is not opened automatically. `iosOpenHostAppAfterShare` defaults to `false`. Set it to `true` and keep `expo.scheme` (or `iosHostUrlScheme`) only if you want a best-effort attempt to return to your app after sharing. Without it, the user stays in Photos/Safari until they switch apps manually. See [Configuration](./configuration) and [iOS](./platforms/ios#opening-the-host-app).
+:::
 
 ## Register a receiver
 
