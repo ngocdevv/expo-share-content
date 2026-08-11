@@ -1,0 +1,42 @@
+# npm publishing setup
+
+The workflow in `workflows/publish-npm.yml` publishes only after a pull request:
+
+1. targets `main`;
+2. has a current approval from an allowed npm approver;
+3. is merged;
+4. passes tests, lint, build, CommonJS verification, and generated-output checks; and
+5. contains a package version that does not already exist on npm.
+
+## npm Trusted Publishing
+
+The package uses npm Trusted Publishing with OpenID Connect. No npm token or
+GitHub Actions secret is required.
+
+The npm package connection is restricted to:
+
+```text
+Provider: GitHub Actions
+Repository: ngocdevv/React-Native-Share-Content
+Workflow: publish-npm.yml
+Allowed action: npm publish
+```
+
+The workflow grants `id-token: write`, runs on a GitHub-hosted runner, and installs
+npm 12.0.2 because Trusted Publishing requires npm 11.5.1 or later with Node
+22.14.0 or later. The npm package setting disallows bypass-2FA token publishing;
+the configured OIDC publisher remains allowed.
+
+## Allowed approvers
+
+By default, only the GitHub repository owner can authorize npm publishing. To allow additional maintainers, create a repository variable named `NPM_APPROVERS` containing comma-separated GitHub logins:
+
+```text
+ngocdevv,another-maintainer
+```
+
+The pull-request author cannot authorize their own release.
+
+## Versioning
+
+Every release must increment `package.json#version`. If the version already exists on npm, the workflow succeeds without publishing again.
