@@ -23,8 +23,9 @@ Allowed action: npm publish
 ```
 
 The workflow grants `id-token: write`, runs on a GitHub-hosted runner, and installs
-npm 12.0.2 because Trusted Publishing requires npm 11.5.1 or later with Node
-22.14.0 or later. The npm package setting disallows bypass-2FA token publishing;
+npm 11.19.0 because Trusted Publishing requires npm 11.5.1 or later with Node
+22.14.0 or later. npm 11.19.0 supports Node 22.14.0; npm 12 requires a newer
+Node release. The npm package setting disallows bypass-2FA token publishing;
 the configured OIDC publisher remains allowed.
 
 ## Allowed approvers
