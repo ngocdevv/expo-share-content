@@ -24,8 +24,8 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Require approval from an npm approver
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+      - name: Require authorization from an npm approver
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           REQUIRED_APPROVERS: ${{ vars.NPM_APPROVERS || github.repository_owner }}
         with:
@@ -57,17 +57,22 @@ jobs:
               ([login, review]) => login !== author && allowed.has(login) && review.state === 'APPROVED'
             );
 
-            if (!approval) {
+            const merger = context.payload.pull_request.merged_by?.login.toLowerCase();
+
+            if (approval) {
+              core.info(`Accepted review approval from @${approval[1].user.login}.`);
+            } else if (merger && allowed.has(merger)) {
+              core.info(`Accepted merge authorization from @${merger}.`);
+            } else {
               core.setFailed(
-                `PR must have a current approval from one of: ${[...allowed].join(', ')}`
+                `PR must have a current approval from, or be merged by, one of: ${[
+                  ...allowed,
+                ].join(', ')}`
               );
-              return;
             }
 
-            core.info(`Accepted approval from @${approval[1].user.login}.`);
-
       - name: Check out the merged commit
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
@@ -82,10 +87,11 @@ jobs:
           git merge-base --is-ancestor HEAD origin/main
 
       - name: Set up Node.js and npm registry
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22.14.0
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
 
       - name: Install npm with Trusted Publishing support
         run: npm install --global npm@12.0.2
