@@ -280,76 +280,68 @@ final class ShareViewController: UIViewController {
       return try await loadFile(provider: provider, typeIdentifier: UTType.fileURL.identifier, itemType: "file", id: id, shareId: shareId)
     }
     if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
-      return try await loadBoundedText(
-        provider: provider,
-        typeIdentifier: UTType.url.identifier,
-        id: id,
-        asURL: true
-      )
+      return try await loadURL(provider: provider, id: id)
     }
     if provider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
-      return try await loadBoundedText(
-        provider: provider,
-        typeIdentifier: UTType.text.identifier,
-        id: id,
-        asURL: false
-      )
+      return try await loadText(provider: provider, id: id)
     }
     guard let typeIdentifier = provider.registeredTypeIdentifiers.first else { return nil }
     return try await loadFile(provider: provider, typeIdentifier: typeIdentifier, itemType: "file", id: id, shareId: shareId)
   }
 
-  private func loadBoundedText(
-    provider: NSItemProvider,
-    typeIdentifier: String,
-    id: String,
-    asURL: Bool
-  ) async throws -> SharedItem {
-    let data = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
-      provider.loadDataRepresentation(forTypeIdentifier: typeIdentifier) { data, error in
+  private func loadURL(provider: NSItemProvider, id: String) async throws -> SharedItem {
+    let url = try await withCheckedThrowingContinuation {
+      (continuation: CheckedContinuation<URL, Error>) in
+      _ = provider.loadObject(ofClass: URL.self) { url, error in
         if let error {
           continuation.resume(throwing: error)
           return
         }
-        guard let data else {
+        guard let url else {
           continuation.resume(throwing: ShareExtensionError.itemUnavailable)
           return
         }
-        guard data.count <= self.maxTextBytes else {
-          continuation.resume(throwing: ShareExtensionError.textTooLarge(self.maxTextBytes))
-          return
-        }
-        continuation.resume(returning: data)
+        continuation.resume(returning: url)
       }
     }
 
-    if asURL {
-      guard
-        let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .utf16),
-        let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
-        let scheme = url.scheme?.lowercased(),
-        ["http", "https"].contains(scheme)
-      else {
-        throw ShareExtensionError.itemUnavailable
-      }
-      let normalized = url.absoluteString
-      guard normalized.utf8.count <= maxTextBytes else {
-        throw ShareExtensionError.textTooLarge(maxTextBytes)
-      }
-      return SharedItem(
-        id: id,
-        type: "url",
-        mimeType: "text/uri-list",
-        text: normalized,
-        uri: nil,
-        fileName: nil,
-        size: nil
-      )
-    }
-
-    guard let value = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .utf16) else {
+    guard
+      let scheme = url.scheme?.lowercased(),
+      ["http", "https"].contains(scheme)
+    else {
       throw ShareExtensionError.itemUnavailable
     }
+    let normalized = url.absoluteString
+    guard normalized.utf8.count <= maxTextBytes else {
+      throw ShareExtensionError.textTooLarge(maxTextBytes)
+    }
+    return SharedItem(
+      id: id,
+      type: "url",
+      mimeType: "text/uri-list",
+      text: normalized,
+      uri: nil,
+      fileName: nil,
+      size: nil
+    )
+  }
+
+  private func loadText(provider: NSItemProvider, id: String) async throws -> SharedItem {
+    let value = try await withCheckedThrowingContinuation {
+      (continuation: CheckedContinuation<String, Error>) in
+      _ = provider.loadObject(ofClass: String.self) { value, error in
+        if let error {
+          continuation.resume(throwing: error)
+          return
+        }
+        guard let value else {
+          continuation.resume(throwing: ShareExtensionError.itemUnavailable)
+          return
+        }
+        continuation.resume(returning: value)
+      }
+    }
+
     guard value.utf8.count <= maxTextBytes else {
       throw ShareExtensionError.textTooLarge(maxTextBytes)
     }
