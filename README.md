@@ -4,6 +4,12 @@ Receive text, URLs, images, videos, audio, and files shared **into** an Expo app
 
 `expo-share-content` is an Expo Module alternative to bridge-based packages such as `react-native-share-menu`. It supports cold starts, warm starts, multiple attachments, a durable pending queue, typed events, and Expo config plugins for Android share intents and an iOS Share Extension.
 
+## Demo
+
+| Android | iOS |
+| :---: | :---: |
+| ![Receive shared content on Android](https://raw.githubusercontent.com/ngocdevv/expo-share-content/main/docs/static/img/demo-android.gif) | ![Receive shared content on iOS](https://raw.githubusercontent.com/ngocdevv/expo-share-content/main/docs/static/img/demo-ios.gif) |
+
 > [!IMPORTANT]
 > This package contains native code and does **not** work in Expo Go. Use a development build or production build after running prebuild.
 
