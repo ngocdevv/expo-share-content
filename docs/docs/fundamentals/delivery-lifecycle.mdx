@@ -17,6 +17,8 @@ Delivery is **at least once**. The API favors preserving data over silently drop
 
 A live event and a pending query may expose the same stable payload ID. Maintain an in-memory or persisted handled-ID table when processing must be exactly-once at the business layer.
 
+Native replay differs by platform. On iOS, starting observation and bringing the app active emits pending records that the current module instance has not emitted yet. On Android, intents captured before module creation are queued without a live event. Register listeners early, but always query pending shares on both platforms.
+
 :::caution Android process restoration
 Android has no trustworthy operation identifier for arbitrary `ACTION_SEND` callers. A task restored after process death can rarely redeliver a source intent under a new package-generated payload ID. Prefer duplicate delivery over dropping a legitimate separate share with identical content.
 :::
@@ -57,7 +59,9 @@ await ExpoShareContent.releaseSharedFilesAsync([payload.id]);
 ## Retention behavior
 
 - Files for pending receipts are protected.
-- Acknowledged but unreleased files remain eligible for automatic cleanup seven days after receipt.
+- `releaseSharedFilesAsync` deletes acknowledged receipt directories immediately.
+- Acknowledged but unreleased files become eligible for lazy cleanup seven days after receipt.
+- Cleanup runs during later queue operations; there is no background timer that guarantees deletion at the seven-day mark.
 - Each platform caps all module-managed attachment storage at 1 GiB.
 - Your app owns permanent retention after import.
 

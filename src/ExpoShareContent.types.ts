@@ -8,7 +8,7 @@ export type SharedContentItem = {
   type: SharedContentType;
   mimeType: string | null;
   text?: string;
-  /** Durable local file URI copied into app-owned cache storage. */
+  /** Module-managed local file URI that outlives the source app's temporary permission. */
   uri?: string;
   fileName?: string;
   size?: number;

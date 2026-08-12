@@ -16,6 +16,8 @@ import {
   View,
 } from 'react-native';
 
+import { removeSharesById } from './share-state';
+
 function formatTimestamp(timestamp: number): string {
   try {
     return new Date(timestamp).toLocaleString();
@@ -202,7 +204,7 @@ function ShareCard({
         </Text>
       ) : null}
 
-      <Button title="Acknowledge" onPress={() => onAcknowledge(share.id)} />
+      <Button title="Acknowledge & release" onPress={() => onAcknowledge(share.id)} />
     </View>
   );
 }
@@ -224,6 +226,7 @@ export default function App() {
   const acknowledge = useCallback(async (shareId: string) => {
     try {
       await ExpoShareContent.clearPendingSharesAsync([shareId]);
+      await ExpoShareContent.releaseSharedFilesAsync([shareId]);
       setShares((current) => current.filter((share) => share.id !== shareId));
       setError(null);
     } catch (cause) {
@@ -270,12 +273,16 @@ export default function App() {
         <View style={styles.actions}>
           <Button title="Refresh queue" onPress={() => void refresh()} />
           <Button
-            title="Clear queue"
+            title="Clear listed & release"
             color="#b42318"
             onPress={async () => {
               try {
-                await ExpoShareContent.clearPendingSharesAsync();
-                setShares([]);
+                const shareIds = shares.map((share) => share.id);
+                if (shareIds.length > 0) {
+                  await ExpoShareContent.clearPendingSharesAsync(shareIds);
+                  await ExpoShareContent.releaseSharedFilesAsync(shareIds);
+                }
+                setShares((current) => removeSharesById(current, shareIds));
                 setError(null);
               } catch (cause) {
                 setError(cause instanceof Error ? cause.message : String(cause));

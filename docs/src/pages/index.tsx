@@ -203,7 +203,7 @@ function ShareFlow() {
           <img
             className={styles.phoneShot}
             src="img/demo-share-received.png"
-            alt="Real Expo Share Content example: an image shared from Photos appears with preview, filename, size, and App Group file URI"
+            alt="Privacy-safe Expo Share Content demo showing an image payload with preview, filename, size, and App Group file URI"
             width={552}
             height={1200}
             decoding="async"

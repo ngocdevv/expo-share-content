@@ -30,11 +30,17 @@ Default identifiers are derived from the host bundle ID:
 | Extension name | `ShareExtension` |
 | Deployment target | `16.4` |
 
+`iosShareExtensionName` remains unchanged as the share-sheet display name. For the Xcode target, generated directory, `.appex` product, and EAS `targetName`, the plugin keeps only ASCII letters and digits and requires a non-empty result (`"Share to Example"` becomes `SharetoExample`).
+
+An overridden extension bundle ID must differ from the host bundle ID and remain under its prefix. For a host `com.example.myapp`, use a value such as `com.example.myapp.share.internal`.
+
 ## Queue delivery
 
 The extension streams file representations into the App Group container, then atomically commits one JSON record for the share operation. The host module reads queue files when the app becomes active or JavaScript begins observing.
 
 Text and URL values use data representations and are limited before decoding. Attachments use streamed file representations rather than loading the whole file into memory.
+
+Errors before the extension commits a queue record are displayed inside the Share Extension and cancel that request. Because the extension is a separate process, those intake errors are not forwarded to the host JavaScript `addShareErrorListener`. The host listener reports App Group and queue-read failures encountered by the Expo Module.
 
 ## Opening the host app
 

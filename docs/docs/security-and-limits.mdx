@@ -18,9 +18,11 @@ The module treats share-sheet input as untrusted data supplied by another applic
 | All binary data in one share | 250 MiB |
 | Pending receipts per platform | 20 |
 | All module-managed attachments | 1 GiB |
-| Acknowledged-file retention | Up to seven days from receipt |
+| Acknowledged, unreleased files | Eligible for lazy cleanup after seven days from receipt |
 
 File and item limits are configurable where exposed by the config plugin. Text, pending-receipt, and total managed-storage caps are package safety boundaries.
+
+`releaseSharedFilesAsync` deletes acknowledged receipt directories immediately. The seven-day value is only a cleanup eligibility threshold for acknowledged files that were not explicitly released. Cleanup runs on later queue operations; it is not a background timer or a guaranteed maximum retention period.
 
 ## Android URI validation
 

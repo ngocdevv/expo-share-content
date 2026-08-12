@@ -151,7 +151,7 @@ Returns the oldest pending payload without removing it. This is a convenience wr
 - Pass IDs to acknowledge only those payloads.
 - Omit the argument to clear the whole queue.
 
-Clearing removes the queue record immediately but deliberately does not delete attachment files. Call `releaseSharedFilesAsync` after copying required files into your own documents/library directory. Unreleased files for acknowledged receipts remain eligible for automatic cleanup seven days after receipt; files for still-pending receipts are protected.
+Clearing removes the queue record immediately but deliberately does not delete attachment files. Call `releaseSharedFilesAsync` after copying required files into your own documents/library directory. Unreleased files for acknowledged receipts become eligible for lazy cleanup seven days after receipt when a later queue operation runs; files for still-pending receipts are protected.
 
 ### `releaseSharedFilesAsync(shareIds: readonly string[]): Promise<void>`
 
@@ -159,11 +159,13 @@ Deletes module-managed attachment directories for already-acknowledged receipts.
 
 ### `addShareListener(listener): ShareSubscription`
 
-Subscribes to warm-start shares. Call `.remove()` on the returned subscription.
+Subscribes to native share events. Call `.remove()` on the returned subscription.
+
+Delivery differs slightly by platform: iOS emits pending queue records that have not yet been emitted when observation starts and whenever the app becomes active; Android buffers cold-start intents into the pending queue without emitting them as live events. On both platforms, register the listener early **and** call `getPendingSharesAsync()` for cold-start recovery.
 
 ### `addShareErrorListener(listener): ShareSubscription`
 
-Subscribes to native parsing, file-copy, App Group, and queue errors.
+Subscribes to errors delivered by the host native module. Android reports intent parsing, file-copy, and queue failures. On iOS, the host reports App Group and queue-read failures; errors that occur inside the separate Share Extension before a queue record is committed are shown in the extension UI and are not forwarded to JavaScript.
 
 ### `dedupeShares(payloads): SharePayload[]`
 
@@ -203,7 +205,7 @@ A single payload represents one share operation, so an Android `SEND_MULTIPLE` i
 
 - Text and URL items use `text`.
 - Binary items use a local `file://` `uri` and may include `fileName`, `mimeType`, and `size`.
-- Managed URIs are isolated from the source app's temporary permission. Pending files are protected; released files use a seven-day retention window from receipt.
+- Managed URIs are isolated from the source app's temporary permission. Pending files are protected. `releaseSharedFilesAsync` deletes acknowledged receipt directories immediately; acknowledged but unreleased directories become eligible for lazy cleanup seven days after receipt, triggered by later queue operations.
 
 ## Config plugin options
 
@@ -211,16 +213,23 @@ A single payload represents one share operation, so an Android `SEND_MULTIPLE` i
 | --- | --- | --- |
 | `androidIntentFilters` | text, image, video, audio, application wildcards | MIME types accepted for `ACTION_SEND` |
 | `androidMultiIntentFilters` | image, video, audio, application wildcards | MIME types accepted for `ACTION_SEND_MULTIPLE` |
-| `iosActivationRules` | text, URL, up to 10 images/movies/files | Supported iOS activation-rule dictionary or predicate string; `TRUEPREDICATE` is rejected for App Store safety |
+| `iosActivationRules` | text, URL, up to 10 images/movies/files | Supported iOS activation-rule dictionary or predicate string; only the keys listed below are accepted, and `TRUEPREDICATE` is rejected for App Store safety |
 | `iosAppGroupIdentifier` | `group.<bundleIdentifier>` | Shared container used by app and extension |
-| `iosShareExtensionName` | `ShareExtension` | Xcode target and display name |
-| `iosShareExtensionBundleIdentifier` | `<bundleIdentifier>.share` | Extension bundle ID |
+| `iosShareExtensionName` | `ShareExtension` | Share-sheet display name; the Xcode/EAS target keeps only ASCII letters and digits and must not be empty |
+| `iosShareExtensionBundleIdentifier` | `<bundleIdentifier>.share` | Extension bundle ID; must differ from and start with `<ios.bundleIdentifier>.` |
 | `iosDeploymentTarget` | `16.4` | Extension deployment target; cannot be below 16.4 |
 | `iosOpenHostAppAfterShare` | `false` | Opt-in best-effort open of the host app after a successful share (UIApplication / responder-chain / `NSExtensionContext.open`). Not guaranteed by Apple |
 | `iosHostUrlScheme` | `expo.scheme` | URL scheme used when auto-open is enabled (`"myapp"` → `myapp://share?shareId=…`) |
 | `maxSharedItems` | `20` | Maximum item providers handled per share; must be `1...2147483647` |
 | `maxSharedFileSize` | `104857600` | Maximum bytes copied for one attachment (100 MiB); must be `1...2147483647` |
 | `maxSharedTotalSize` | `262144000` | Aggregate binary bytes copied for one share (250 MiB); must be at least `maxSharedFileSize` and at most `2147483647` |
+
+For dictionary-based `iosActivationRules`, the plugin accepts only these Apple keys:
+
+- Boolean: `NSExtensionActivationSupportsText`.
+- Positive integer: `NSExtensionActivationSupportsAttachmentsWithMaxCount`, `NSExtensionActivationSupportsAttachmentsWithMinCount`, `NSExtensionActivationSupportsFileWithMaxCount`, `NSExtensionActivationSupportsImageWithMaxCount`, `NSExtensionActivationSupportsMovieWithMaxCount`, `NSExtensionActivationSupportsWebPageWithMaxCount`, and `NSExtensionActivationSupportsWebURLWithMaxCount`.
+
+Dictionary rules must contain at least one supported key. Numeric activation-rule values cannot exceed `maxSharedItems`. Predicate strings must be non-empty and must not contain `TRUEPREDICATE`.
 
 Example with narrower Android filters and explicit Apple identifiers:
 
@@ -255,6 +264,8 @@ The plugin validates MIME syntax, positive limits, identifiers, and deployment t
 ### iOS
 
 - A main-app native module alone cannot appear in the iOS share sheet; the generated Share Extension is required.
+- `iosShareExtensionName` remains unchanged as the share-sheet display name, but its Xcode target, directory, product, and EAS `targetName` keep only ASCII letters and digits; the result must not be empty (`"Share to Example"` becomes `SharetoExample`).
+- A custom `iosShareExtensionBundleIdentifier` must be different from the host bundle ID and prefixed by `<ios.bundleIdentifier>.`, as required for an embedded app extension.
 - Binary/media attachments use `loadFileRepresentation` with 64 KiB streaming. Text/URL values use `loadDataRepresentation` and are rejected above the 256 KiB text cap before decoding.
 - By default the extension does **not** auto-open the host app. Queue delivery is independent of auto-open. If you set `iosOpenHostAppAfterShare: true`, the extension attempts a best-effort open chain and awaits it before `completeRequest`.
 - App Group and extension provisioning must exist for device/App Store builds. Simulator builds do not prove production signing is configured.
@@ -281,6 +292,8 @@ npm run build:plugin
 ```
 
 The `example/` app links the package through `file:..`. Its generated `ios/` and `android/` directories are disposable prebuild output.
+
+`npm test` covers the JavaScript wrapper and config plugin. Native queue-codec tests live under `android/src/test/` and `ios/Tests/`; run them through the generated example Android project or compile the Swift test harness when changing native queue behavior.
 
 ## License
 

@@ -55,7 +55,14 @@ addShareListener(
 ): ShareSubscription
 ```
 
-Subscribes to warm-start payloads. Remove the subscription when the owning component unmounts.
+Subscribes to native share events. Remove the subscription when the owning component unmounts.
+
+The native replay behavior is platform-specific:
+
+- **iOS:** starting observation and bringing the app active emits pending queue records that this module instance has not already emitted.
+- **Android:** intents buffered before module creation are added to the pending queue without a live event.
+
+Always register the listener early and also call `getPendingSharesAsync()` for cold-start recovery.
 
 ## `addShareErrorListener`
 
@@ -65,7 +72,7 @@ addShareErrorListener(
 ): ShareSubscription
 ```
 
-Subscribes to native parsing, file-copy, queue, and App Group errors.
+Subscribes to errors delivered by the host native module. Android reports intent parsing, file-copy, and queue failures. On iOS, the host reports App Group and queue-read failures. Intake errors raised inside the separate iOS Share Extension before it commits a queue record are shown in the extension UI and are not forwarded to JavaScript.
 
 ## `dedupeShares`
 
@@ -86,6 +93,8 @@ export type SharedContentType =
   | 'audio'
   | 'file';
 
+export type ShareSource = 'share-sheet';
+
 export type SharedContentItem = {
   id: string;
   type: SharedContentType;
@@ -99,7 +108,7 @@ export type SharedContentItem = {
 export type SharePayload = {
   id: string;
   timestamp: number;
-  source: 'share-sheet';
+  source: ShareSource;
   title?: string;
   items: SharedContentItem[];
 };
@@ -112,8 +121,31 @@ export type ShareErrorEvent = {
 export type ShareSubscription = {
   remove(): void;
 };
+
+export type ExpoShareContentModuleEvents = {
+  onShareReceived: (payload: SharePayload) => void;
+  onShareError: (error: ShareErrorEvent) => void;
+};
 ```
 
 ## Testing with an injected module
 
 `createShareContentApi` builds the public wrapper around a compatible native module. It is useful for package tests and advanced dependency injection; most applications should use the default export.
+
+```ts
+export type ShareContentNativeModule = {
+  getPendingSharesAsync(): Promise<SharePayload[]>;
+  clearPendingSharesAsync(shareIds: string[] | null): Promise<void>;
+  releaseSharedFilesAsync(shareIds: string[]): Promise<void>;
+  addListener(
+    eventName: 'onShareReceived' | 'onShareError',
+    listener: (event: never) => void
+  ): ShareSubscription;
+};
+
+export function createShareContentApi(
+  nativeModule: ShareContentNativeModule
+): ShareContentApi;
+
+export type ShareContentApi = ReturnType<typeof createShareContentApi>;
+```

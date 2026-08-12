@@ -1,7 +1,7 @@
 {
   "name": "expo-share-content",
   "version": "0.1.0",
-  "description": "Receive text, URLs, images, videos, and files shared to an Expo app.",
+  "description": "Receive text, URLs, images, videos, audio, and files shared to an Expo app.",
   "type": "commonjs",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -92,7 +92,8 @@
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/src",
-      "<rootDir>/plugin/src"
+      "<rootDir>/plugin/src",
+      "<rootDir>/example"
     ]
   },
   "peerDependencies": {

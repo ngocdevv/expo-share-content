@@ -47,7 +47,7 @@ The receipt is probably still pending. Persist required files, call `clearPendin
 
 ## An attachment URI stops existing
 
-Module-managed acknowledged files are not permanent storage. Copy required files before releasing them and before the seven-day cleanup window elapses.
+Module-managed acknowledged files are not permanent storage. Copy required files before releasing them. If they are not explicitly released, they become eligible for lazy cleanup seven days after receipt when a later queue operation runs.
 
 ## A source app fails while another works
 

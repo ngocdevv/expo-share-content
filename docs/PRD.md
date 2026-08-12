@@ -48,7 +48,7 @@ Each item has a stable ID and one normalized type:
 - `audio`
 - `file`
 
-Textual items expose `text`. Binary items expose an app-owned managed `file://` URI plus optional MIME type, filename, and byte size. Pending files are protected; released files are retained for up to seven days from receipt.
+Textual items expose `text`. Binary items expose a module-managed `file://` URI plus optional MIME type, filename, and byte size. Pending files are protected. Releasing an acknowledged receipt deletes its managed directory immediately; acknowledged but unreleased directories become eligible for lazy cleanup seven days after receipt when a later queue operation runs.
 
 ### 4.2 Delivery semantics
 
@@ -74,7 +74,7 @@ The event and pending APIs may surface the same stable ID. Consumers must make b
 5. The listener buffers the launch intent before the Expo Module exists.
 6. The module parses launch/new intents on a serial executor.
 7. Temporary `content://` streams are copied to app no-backup storage with byte limits.
-8. Payload JSON is stored in SharedPreferences and emitted to JavaScript for live shares.
+8. Payload JSON is persisted through an `AtomicFile` queue and emitted to JavaScript for live shares.
 
 ### 5.2 iOS
 
@@ -84,7 +84,7 @@ The event and pending APIs may surface the same stable ID. Consumers must make b
 4. The extension reads `NSExtensionItem`/`NSItemProvider` values serially.
 5. Attachments are copied into the App Group container.
 6. Each payload is atomically written as one JSON file under `ExpoShareContent/Queue`.
-7. The extension completes without using unsupported host-opening APIs; iOS delivery is queue-only.
+7. After the queue commit, the extension optionally attempts a best-effort host open when `iosOpenHostAppAfterShare` is enabled; queue delivery never depends on open success.
 8. The host Expo Module reads or removes queue files and emits pending records when observing begins or the app becomes active.
 
 ## 6. Config plugin requirements
@@ -108,7 +108,7 @@ The plugin must:
 - iOS writes must be atomic so the host cannot read partial JSON.
 - Android queue updates must be synchronized.
 - Text is limited to 256 KiB and each platform accepts at most 20 pending receipts.
-- Clearing removes the queue record; released attachment files are cleaned after the seven-day retention window.
+- Clearing removes the queue record without deleting attachments. Releasing an acknowledged receipt deletes its managed files immediately; acknowledged but unreleased files are eligible for lazy cleanup after seven days.
 - Attachment URIs must not depend on the source app retaining temporary permission.
 - Logs and payloads must not be sent off-device by the package.
 
@@ -140,6 +140,6 @@ The plugin must:
 - Android and iOS only; web is not supported.
 - Expo Go cannot include the module or extension.
 - App Group and extension signing are external Apple Developer/EAS concerns.
-- iOS uses queue-only continuation and does not foreground the host from the Share Extension.
+- iOS queue delivery is independent of foregrounding. Optional host auto-open is best-effort and is not guaranteed by Apple.
 - Source applications vary in MIME type, UTType, filename, and metadata quality.
-- Released attachment files are cleaned after seven days from receipt; the consuming app owns permanent retention.
+- Acknowledged but unreleased attachment files become eligible for lazy cleanup seven days after receipt; explicit release deletes immediately, and the consuming app owns permanent retention.

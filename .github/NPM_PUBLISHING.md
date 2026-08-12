@@ -3,9 +3,9 @@
 The workflow in `workflows/publish-npm.yml` publishes only after a pull request:
 
 1. targets `main`;
-2. has a current approval from an allowed npm approver;
+2. has a current approval from, or is merged by, an allowed npm approver;
 3. is merged;
-4. passes tests, lint, build, CommonJS verification, and generated-output checks; and
+4. passes Jest tests, lint, build, CommonJS verification, and generated-output checks; and
 5. contains a package version that does not already exist on npm.
 
 ## npm Trusted Publishing
@@ -17,7 +17,7 @@ The npm package connection is restricted to:
 
 ```text
 Provider: GitHub Actions
-Repository: ngocdevv/React-Native-Share-Content
+Repository: ngocdevv/expo-share-content
 Workflow: publish-npm.yml
 Allowed action: npm publish
 ```
