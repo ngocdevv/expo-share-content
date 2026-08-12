@@ -48,9 +48,11 @@ describe('iOS Share Extension artifacts', () => {
     expect(swift).toContain('completeRequest(returningItems: nil, completionHandler: nil)');
     expect(swift).toContain('loadFileRepresentation(forTypeIdentifier:');
     expect(swift).toContain('read(upToCount:');
-    // Binary/media attachments must stream. Text/URL may load small in-memory values,
-    // but only after a byte-length guard (loadDataRepresentation path).
-    expect(swift).toContain('loadDataRepresentation(forTypeIdentifier:');
+    // Binary/media attachments must stream. Text/URL use typed object loading so
+    // ExtensionKit receives an expected value class for cross-process providers.
+    expect(swift).toContain('loadObject(ofClass: URL.self)');
+    expect(swift).toContain('loadObject(ofClass: String.self)');
+    expect(swift).not.toContain('loadDataRepresentation(forTypeIdentifier:');
     expect(swift).not.toMatch(/loadItem\(forTypeIdentifier:\s*UTType\.(image|movie|audio|fileURL)/);
     expect(swift).not.toContain('image.pngData()');
     expect(swift).not.toContain('copyItem(at: source');
