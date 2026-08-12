@@ -1,11 +1,9 @@
 name: Publish npm after approved PR merge
 
 on:
-  pull_request_target:
+  push:
     branches:
       - main
-    types:
-      - closed
 
 permissions:
   contents: read
@@ -19,7 +17,6 @@ concurrency:
 jobs:
   publish:
     name: Verify and publish
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -37,10 +34,41 @@ jobs:
                 .filter(Boolean)
             );
 
+            const associated = await github.paginate(
+              github.rest.repos.listPullRequestsAssociatedWithCommit,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                per_page: 100,
+              }
+            );
+            const candidates = [];
+            for (const item of associated) {
+              if (item.base.ref !== 'main' || item.merge_commit_sha !== context.sha) {
+                continue;
+              }
+              const { data: pull } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: item.number,
+              });
+              if (pull.merged_at && pull.merge_commit_sha === context.sha) {
+                candidates.push(pull);
+              }
+            }
+            if (candidates.length !== 1) {
+              core.setFailed(
+                `Expected exactly one merged pull request for ${context.sha}; found ${candidates.length}.`
+              );
+              return;
+            }
+            const pull = candidates[0];
+
             const reviews = await github.paginate(github.rest.pulls.listReviews, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
+              pull_number: pull.number,
               per_page: 100,
             });
 
@@ -52,12 +80,12 @@ jobs:
               latestByReviewer.set(review.user.login.toLowerCase(), review);
             }
 
-            const author = context.payload.pull_request.user.login.toLowerCase();
+            const author = pull.user.login.toLowerCase();
             const approval = [...latestByReviewer.entries()].find(
               ([login, review]) => login !== author && allowed.has(login) && review.state === 'APPROVED'
             );
 
-            const merger = context.payload.pull_request.merged_by?.login.toLowerCase();
+            const merger = pull.merged_by?.login.toLowerCase();
 
             if (approval) {
               core.info(`Accepted review approval from @${approval[1].user.login}.`);
@@ -69,17 +97,18 @@ jobs:
                   ...allowed,
                 ].join(', ')}`
               );
+              return;
             }
 
       - name: Check out the merged commit
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Verify commit is on main
         env:
-          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          MERGE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$MERGE_SHA"
@@ -156,5 +185,5 @@ jobs:
           else
             result="already published; skipped"
           fi
-          printf '## npm release\n\n- Package: `%s@%s`\n- Result: %s\n' \
+          printf "## npm release\n\n- Package: \`%s@%s\`\n- Result: %s\n" \
             "$PACKAGE_NAME" "$PACKAGE_VERSION" "$result" >> "$GITHUB_STEP_SUMMARY"
