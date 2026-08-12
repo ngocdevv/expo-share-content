@@ -1,0 +1,104 @@
+{
+  "name": "expo-share-content",
+  "version": "0.1.2",
+  "description": "Receive text, URLs, images, videos, audio, and files shared to an Expo app.",
+  "type": "commonjs",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    },
+    "./app.plugin.js": {
+      "types": "./app.plugin.d.ts",
+      "default": "./app.plugin.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "android/src/main",
+    "android/build.gradle",
+    "ios/*.swift",
+    "ios/*.podspec",
+    "ios/*.xcprivacy",
+    "build",
+    "plugin/build",
+    "app.plugin.js",
+    "app.plugin.d.ts",
+    "expo-module.config.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node internal/module_scripts/build.js",
+    "build:watch": "node internal/module_scripts/build.js --watch",
+    "build:plugin": "node internal/module_scripts/build.js plugin",
+    "build:all": "npm run build && npm run build:plugin && npm run copy:plugin-native",
+    "copy:plugin-native": "node internal/module_scripts/copy-plugin-native.js",
+    "clean": "node internal/module_scripts/clean.js",
+    "lint": "eslint src/ plugin/src/ --max-warnings=0",
+    "test": "node internal/module_scripts/test.js --runInBand",
+    "prepare": "node internal/module_scripts/prepare.js && npm run copy:plugin-native",
+    "verify:cjs": "node internal/module_scripts/verify-cjs.js",
+    "prepublishOnly": "CI=1 npm test && npm run lint && npm run build:all && npm run verify:cjs",
+    "open:ios": "node internal/module_scripts/open-ios.js",
+    "open:android": "node internal/module_scripts/open-android.js"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "share",
+    "share-extension",
+    "share-intent",
+    "ExpoShareContent"
+  ],
+  "author": "ngocdevv <ngoc1997307@gmail.com> (https://github.com/ngocdevv)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngocdevv/expo-share-content.git"
+  },
+  "homepage": "https://ngocdevv.github.io/expo-share-content/",
+  "bugs": {
+    "url": "https://github.com/ngocdevv/expo-share-content/issues"
+  },
+  "engines": {
+    "node": "^20.19.4 || ^22.13.0 || ^24.3.0 || >=25.0.0"
+  },
+  "dependencies": {
+    "@expo/config-plugins": "~57.0.7",
+    "@expo/plist": "^0.8.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@types/jest": "^29.2.1",
+    "@types/node": "^24.0.0",
+    "@types/react": "~19.2.2",
+    "babel-preset-expo": "~57.0.6",
+    "eslint": "~9.39.4",
+    "eslint-config-universe": "^15.0.3",
+    "expo": "^57.0.11",
+    "expo-modules-core": "^57.0.10",
+    "jest": "^29.7.0",
+    "jest-expo": "~57.0.3",
+    "prettier": "^3.0.0",
+    "react-native": "0.86.2",
+    "typescript": "~6.0.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/plugin/src",
+      "<rootDir>/example"
+    ]
+  },
+  "peerDependencies": {
+    "expo": "^57.0.0",
+    "react": "*",
+    "react-native": "*"
+  }
+}

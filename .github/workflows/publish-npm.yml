@@ -1,0 +1,189 @@
+name: Publish npm after approved PR merge
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Verify and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Require authorization from an npm approver
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          REQUIRED_APPROVERS: ${{ vars.NPM_APPROVERS || github.repository_owner }}
+        with:
+          script: |
+            const allowed = new Set(
+              process.env.REQUIRED_APPROVERS
+                .split(',')
+                .map((login) => login.trim().toLowerCase())
+                .filter(Boolean)
+            );
+
+            const associated = await github.paginate(
+              github.rest.repos.listPullRequestsAssociatedWithCommit,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                per_page: 100,
+              }
+            );
+            const candidates = [];
+            for (const item of associated) {
+              if (item.base.ref !== 'main' || item.merge_commit_sha !== context.sha) {
+                continue;
+              }
+              const { data: pull } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: item.number,
+              });
+              if (pull.merged_at && pull.merge_commit_sha === context.sha) {
+                candidates.push(pull);
+              }
+            }
+            if (candidates.length !== 1) {
+              core.setFailed(
+                `Expected exactly one merged pull request for ${context.sha}; found ${candidates.length}.`
+              );
+              return;
+            }
+            const pull = candidates[0];
+
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pull.number,
+              per_page: 100,
+            });
+
+            const decisiveStates = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
+            const latestByReviewer = new Map();
+            for (const review of reviews
+              .filter((item) => item.user && item.submitted_at && decisiveStates.has(item.state))
+              .sort((left, right) => left.submitted_at.localeCompare(right.submitted_at))) {
+              latestByReviewer.set(review.user.login.toLowerCase(), review);
+            }
+
+            const author = pull.user.login.toLowerCase();
+            const approval = [...latestByReviewer.entries()].find(
+              ([login, review]) => login !== author && allowed.has(login) && review.state === 'APPROVED'
+            );
+
+            const merger = pull.merged_by?.login.toLowerCase();
+
+            if (approval) {
+              core.info(`Accepted review approval from @${approval[1].user.login}.`);
+            } else if (merger && allowed.has(merger)) {
+              core.info(`Accepted merge authorization from @${merger}.`);
+            } else {
+              core.setFailed(
+                `PR must have a current approval from, or be merged by, one of: ${[
+                  ...allowed,
+                ].join(', ')}`
+              );
+              return;
+            }
+
+      - name: Check out the merged commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify commit is on main
+        env:
+          MERGE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MERGE_SHA"
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+
+      - name: Set up Node.js and npm registry
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22.14.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install npm with Trusted Publishing support
+        run: |
+          npm install --global npm@11.19.0
+          test "$(npm --version)" = "11.19.0"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run release gates
+        run: |
+          set -euo pipefail
+          npm test
+          npm run lint
+          npm run build:all
+          npm run verify:cjs
+          git diff --check
+          git diff --exit-code -- build plugin/build
+
+      - name: Check whether this version is new
+        id: version
+        run: |
+          set -euo pipefail
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          echo "package_name=$package_name" >> "$GITHUB_OUTPUT"
+          echo "package_version=$package_version" >> "$GITHUB_OUTPUT"
+
+          if npm view "$package_name@$package_version" version >/dev/null 2>&1; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "$package_name@$package_version is already published; skipping."
+          else
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pack the audited artifact
+        id: pack
+        if: steps.version.outputs.should_publish == 'true'
+        run: |
+          set -euo pipefail
+          mkdir npm-artifact
+          npm pack --pack-destination npm-artifact
+          set -- npm-artifact/*.tgz
+          test "$#" -eq 1
+          echo "tarball=./$1" >> "$GITHUB_OUTPUT"
+          sha256sum "$1"
+          git diff --exit-code -- build plugin/build
+
+      - name: Publish to npm with provenance
+        if: steps.version.outputs.should_publish == 'true'
+        run: npm publish "${{ steps.pack.outputs.tarball }}" --access public --provenance
+
+      - name: Write job summary
+        if: always() && steps.version.outputs.package_name != ''
+        env:
+          PACKAGE_NAME: ${{ steps.version.outputs.package_name }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.package_version }}
+          SHOULD_PUBLISH: ${{ steps.version.outputs.should_publish }}
+        run: |
+          if [ "$SHOULD_PUBLISH" = "true" ]; then
+            result="publish attempted"
+          else
+            result="already published; skipped"
+          fi
+          printf "## npm release\n\n- Package: \`%s@%s\`\n- Result: %s\n" \
+            "$PACKAGE_NAME" "$PACKAGE_VERSION" "$result" >> "$GITHUB_STEP_SUMMARY"

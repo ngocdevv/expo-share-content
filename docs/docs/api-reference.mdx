@@ -1,0 +1,151 @@
+---
+sidebar_position: 5
+title: API reference
+description: Public methods, listeners, helpers, and TypeScript payload types.
+---
+
+# API reference
+
+All share methods are available on the default export and as named exports. `dedupeShares` and `createShareContentApi` are named exports only.
+
+```ts
+import ExpoShareContent, {
+  getPendingSharesAsync,
+  type SharePayload,
+} from 'expo-share-content';
+```
+
+## `getPendingSharesAsync`
+
+```ts
+getPendingSharesAsync(): Promise<SharePayload[]>
+```
+
+Reads queued payloads without removing them. Results are oldest first, and duplicate IDs inside the native response are removed.
+
+## `getInitialShareAsync`
+
+```ts
+getInitialShareAsync(): Promise<SharePayload | null>
+```
+
+Returns the oldest pending payload without removing it.
+
+## `clearPendingSharesAsync`
+
+```ts
+clearPendingSharesAsync(shareIds?: readonly string[]): Promise<void>
+```
+
+Pass IDs to acknowledge selected records. Omit the argument to clear the entire pending queue. Acknowledgement removes queue records but deliberately does not delete attachment files.
+
+## `releaseSharedFilesAsync`
+
+```ts
+releaseSharedFilesAsync(shareIds: readonly string[]): Promise<void>
+```
+
+Deletes module-managed attachment directories for already acknowledged receipts. The method rejects IDs that remain pending.
+
+## `addShareListener`
+
+```ts
+addShareListener(
+  listener: (payload: SharePayload) => void
+): ShareSubscription
+```
+
+Subscribes to native share events. Remove the subscription when the owning component unmounts.
+
+The native replay behavior is platform-specific:
+
+- **iOS:** starting observation and bringing the app active emits pending queue records that this module instance has not already emitted.
+- **Android:** intents buffered before module creation are added to the pending queue without a live event.
+
+Always register the listener early and also call `getPendingSharesAsync()` for cold-start recovery.
+
+## `addShareErrorListener`
+
+```ts
+addShareErrorListener(
+  listener: (error: ShareErrorEvent) => void
+): ShareSubscription
+```
+
+Subscribes to errors delivered by the host native module. Android reports intent parsing, file-copy, and queue failures. On iOS, the host reports App Group and queue-read failures. Intake errors raised inside the separate iOS Share Extension before it commits a queue record are shown in the extension UI and are not forwarded to JavaScript.
+
+## `dedupeShares`
+
+```ts
+dedupeShares(payloads: readonly SharePayload[]): SharePayload[]
+```
+
+Removes repeated payload IDs while preserving first-arrival order.
+
+## Types
+
+```ts
+export type SharedContentType =
+  | 'text'
+  | 'url'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'file';
+
+export type ShareSource = 'share-sheet';
+
+export type SharedContentItem = {
+  id: string;
+  type: SharedContentType;
+  mimeType: string | null;
+  text?: string;
+  uri?: string;
+  fileName?: string;
+  size?: number;
+};
+
+export type SharePayload = {
+  id: string;
+  timestamp: number;
+  source: ShareSource;
+  title?: string;
+  items: SharedContentItem[];
+};
+
+export type ShareErrorEvent = {
+  code: string;
+  message: string;
+};
+
+export type ShareSubscription = {
+  remove(): void;
+};
+
+export type ExpoShareContentModuleEvents = {
+  onShareReceived: (payload: SharePayload) => void;
+  onShareError: (error: ShareErrorEvent) => void;
+};
+```
+
+## Testing with an injected module
+
+`createShareContentApi` builds the public wrapper around a compatible native module. It is useful for package tests and advanced dependency injection; most applications should use the default export.
+
+```ts
+export type ShareContentNativeModule = {
+  getPendingSharesAsync(): Promise<SharePayload[]>;
+  clearPendingSharesAsync(shareIds: string[] | null): Promise<void>;
+  releaseSharedFilesAsync(shareIds: string[]): Promise<void>;
+  addListener(
+    eventName: 'onShareReceived' | 'onShareError',
+    listener: (event: never) => void
+  ): ShareSubscription;
+};
+
+export function createShareContentApi(
+  nativeModule: ShareContentNativeModule
+): ShareContentApi;
+
+export type ShareContentApi = ReturnType<typeof createShareContentApi>;
+```

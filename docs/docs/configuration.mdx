@@ -1,0 +1,115 @@
+---
+sidebar_position: 4
+title: Configuration
+description: Configure Android MIME filters, iOS extension identifiers, activation rules, auto-open, and safety limits.
+---
+
+# Configuration
+
+Pass options as the second item in the Expo config-plugin tuple.
+
+```json title="app.json"
+{
+  "expo": {
+    "scheme": "myapp",
+    "ios": {
+      "bundleIdentifier": "com.example.myapp"
+    },
+    "android": {
+      "package": "com.example.myapp"
+    },
+    "plugins": [
+      [
+        "expo-share-content",
+        {
+          "androidIntentFilters": ["text/plain", "image/*"],
+          "androidMultiIntentFilters": ["image/*"],
+          "iosShareExtensionName": "ShareExtension",
+          "iosOpenHostAppAfterShare": false,
+          "iosHostUrlScheme": "myapp",
+          "maxSharedItems": 10,
+          "maxSharedFileSize": 52428800,
+          "maxSharedTotalSize": 157286400
+        }
+      ]
+    ]
+  }
+}
+```
+
+## Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `androidIntentFilters` | text, image, video, audio, application wildcards | MIME types accepted for `ACTION_SEND` |
+| `androidMultiIntentFilters` | image, video, audio, application wildcards | MIME types accepted for `ACTION_SEND_MULTIPLE` |
+| `iosActivationRules` | text, URL, up to 10 images/movies/files | Activation-rule dictionary using the supported keys below, or a non-empty predicate string without `TRUEPREDICATE` |
+| `iosAppGroupIdentifier` | `group.<bundleIdentifier>` | Shared container used by app and extension |
+| `iosShareExtensionName` | `ShareExtension` | Share-sheet display name; the Xcode/EAS target keeps only ASCII letters and digits and must not be empty |
+| `iosShareExtensionBundleIdentifier` | `<bundleIdentifier>.share` | Extension bundle ID; must differ from and start with `<ios.bundleIdentifier>.` |
+| `iosDeploymentTarget` | `16.4` | Extension deployment target; cannot be lower than 16.4 |
+| `iosOpenHostAppAfterShare` | `false` | After a successful share commit, attempt a best-effort open of the host app via URL scheme. Opt-in only; Apple does not guarantee Share Extensions can foreground the containing app. Queue delivery still works when opening fails. |
+| `iosHostUrlScheme` | `expo.scheme` | URL scheme used when `iosOpenHostAppAfterShare` is `true` (for example `myapp` or `myapp://share`) |
+| `maxSharedItems` | `20` | Maximum item providers handled per share |
+| `maxSharedFileSize` | `104857600` | Maximum bytes copied for one attachment (100 MiB) |
+| `maxSharedTotalSize` | `262144000` | Aggregate bytes copied for one share (250 MiB) |
+
+## iOS activation rules
+
+Dictionary-based `iosActivationRules` accept only the following keys:
+
+| Key | Value |
+| --- | --- |
+| `NSExtensionActivationSupportsText` | boolean |
+| `NSExtensionActivationSupportsAttachmentsWithMaxCount` | positive integer |
+| `NSExtensionActivationSupportsAttachmentsWithMinCount` | positive integer |
+| `NSExtensionActivationSupportsFileWithMaxCount` | positive integer |
+| `NSExtensionActivationSupportsImageWithMaxCount` | positive integer |
+| `NSExtensionActivationSupportsMovieWithMaxCount` | positive integer |
+| `NSExtensionActivationSupportsWebPageWithMaxCount` | positive integer |
+| `NSExtensionActivationSupportsWebURLWithMaxCount` | positive integer |
+
+The dictionary must contain at least one supported key. Every numeric value must be no greater than `maxSharedItems`. A predicate-string rule must be non-empty and cannot contain `TRUEPREDICATE`.
+
+## iOS target identity
+
+`iosShareExtensionName` is used unchanged as the display name in the share sheet. The plugin derives the Xcode target, generated directory, `.appex` product, and EAS `targetName` by keeping only ASCII letters and digits; the result must not be empty. For example, `"Share to Example"` becomes the target `SharetoExample`.
+
+A custom `iosShareExtensionBundleIdentifier` must differ from the host bundle identifier and start with `<ios.bundleIdentifier>.`. For a host `com.example.myapp`, a valid override is `com.example.myapp.share.internal`.
+
+## iOS host auto-open
+
+`iosOpenHostAppAfterShare` controls whether the Share Extension tries to return to your app after writing the App Group queue:
+
+```json
+{
+  "iosOpenHostAppAfterShare": true,
+  "iosHostUrlScheme": "myapp"
+}
+```
+
+- Default is `false` — the user stays in the source app (Photos, Safari, …) and can open your app later; pending shares remain durable.
+- Set `true` only when you want a best-effort foreground attempt. Pair it with `expo.scheme` or an explicit `iosHostUrlScheme` that is registered on the host.
+- Re-run `npx expo prebuild` and rebuild the native app after changing this flag.
+
+Platform details and the open-chain behavior are documented under [Opening the host app](./platforms/ios#opening-the-host-app).
+
+## Validation
+
+The plugin rejects:
+
+- malformed Android MIME types;
+- extension names that are blank or normalize to an empty alphanumeric target;
+- invalid bundle/App Group identifiers;
+- extension bundle identifiers that equal the host ID or do not use the host ID as their prefix;
+- non-positive or out-of-range limits;
+- empty activation-rule dictionaries, unsupported keys, or values of the wrong type;
+- aggregate limits smaller than the per-file limit;
+- iOS deployment targets below 16.4;
+- unsafe `TRUEPREDICATE` activation rules.
+
+An iOS bundle identifier is required because extension and App Group defaults are derived from it.
+
+## Existing native projects
+
+The plugin targets Expo prebuild/Continuous Native Generation. If native projects are committed and manually maintained, run prebuild in a disposable branch and review target, entitlement, build-phase, and manifest changes before adopting them.

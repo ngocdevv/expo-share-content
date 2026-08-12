@@ -1,0 +1,65 @@
+---
+sidebar_position: 7
+title: Troubleshooting
+description: Diagnose missing share-sheet entries, cold-start delivery, signing, MIME filters, and file lifecycle errors.
+---
+
+# Troubleshooting
+
+## The package does not work in Expo Go
+
+This is expected. Build a development client after prebuild:
+
+```bash
+npx expo prebuild --clean
+npx expo run:ios
+# or
+npx expo run:android
+```
+
+## The app is missing from the Android share sheet
+
+1. Confirm the config plugin is present in Expo configuration.
+2. Check that the source MIME type matches `androidIntentFilters` or `androidMultiIntentFilters`.
+3. Run a clean prebuild after changing filters.
+4. Reinstall the native app; restarting Metro is not enough.
+5. Inspect the generated Android manifest for `SEND` and `SEND_MULTIPLE` filters.
+
+## The iOS Share Extension is missing
+
+1. Confirm `ios.bundleIdentifier` exists.
+2. Run a clean prebuild.
+3. Open the generated workspace, not only the Xcode project.
+4. Confirm the extension target and embedded `.appex` product exist.
+5. For physical devices, verify the App Group and provisioning profiles in Apple Developer or EAS credentials.
+
+## Sharing succeeds but the host app does not open on iOS
+
+Queue delivery and host opening are separate. The default is to leave the user in the source app. Even with `iosOpenHostAppAfterShare: true`, Apple does not guarantee foregrounding. Query pending payloads when the host becomes active.
+
+## The same share is processed twice
+
+At-least-once delivery permits the event and pending paths to expose the same payload ID. Deduplicate with `payload.id` and acknowledge after successful business processing.
+
+## `releaseSharedFilesAsync` rejects an ID
+
+The receipt is probably still pending. Persist required files, call `clearPendingSharesAsync([id])`, then release its managed files.
+
+## An attachment URI stops existing
+
+Module-managed acknowledged files are not permanent storage. Copy required files before releasing them. If they are not explicitly released, they become eligible for lazy cleanup seven days after receipt when a later queue operation runs.
+
+## A source app fails while another works
+
+Source applications vary in MIME/UTType, metadata, URI permissions, and file-provider behavior. Capture the error event, test the generated platform configuration, and reproduce on a physical device with the specific source application.
+
+## Reset generated native output
+
+When plugin identifiers or options change:
+
+```bash
+rm -rf ios android
+npx expo prebuild --clean
+```
+
+Do this only when the native directories are disposable. If they are manually maintained, review changes rather than deleting them.

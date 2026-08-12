@@ -1,0 +1,96 @@
+---
+sidebar_position: 2
+title: iOS
+description: Generated Share Extension, App Group queue, signing, activation rules, and optional host opening.
+---
+
+# iOS
+
+A main-app module cannot appear in the iOS share sheet by itself. The config plugin generates a native Share Extension target during prebuild.
+
+## Generated artifacts
+
+The plugin creates or configures:
+
+- a Share Extension target and product;
+- extension `Info.plist` and entitlements;
+- a shared App Group entitlement for host and extension;
+- generated Swift intake source;
+- activation rules;
+- privacy manifest resources;
+- an embed phase in the host target;
+- EAS app-extension credential metadata.
+
+Default identifiers are derived from the host bundle ID:
+
+| Setting | Default |
+| --- | --- |
+| Extension bundle ID | `<ios.bundleIdentifier>.share` |
+| App Group | `group.<ios.bundleIdentifier>` |
+| Extension name | `ShareExtension` |
+| Deployment target | `16.4` |
+
+`iosShareExtensionName` remains unchanged as the share-sheet display name. For the Xcode target, generated directory, `.appex` product, and EAS `targetName`, the plugin keeps only ASCII letters and digits and requires a non-empty result (`"Share to Example"` becomes `SharetoExample`).
+
+An overridden extension bundle ID must differ from the host bundle ID and remain under its prefix. For a host `com.example.myapp`, use a value such as `com.example.myapp.share.internal`.
+
+## Queue delivery
+
+The extension streams file representations into the App Group container, then atomically commits one JSON record for the share operation. The host module reads queue files when the app becomes active or JavaScript begins observing.
+
+Text and URL values use data representations and are limited before decoding. Attachments use streamed file representations rather than loading the whole file into memory.
+
+Errors before the extension commits a queue record are displayed inside the Share Extension and cancel that request. Because the extension is a separate process, those intake errors are not forwarded to the host JavaScript `addShareErrorListener`. The host listener reports App Group and queue-read failures encountered by the Expo Module.
+
+## Opening the host app
+
+The default is:
+
+```json
+{
+  "iosOpenHostAppAfterShare": false
+}
+```
+
+Set it to `true` only if you want a best-effort foreground attempt:
+
+```json
+{
+  "expo": {
+    "scheme": "myapp",
+    "plugins": [
+      [
+        "expo-share-content",
+        {
+          "iosOpenHostAppAfterShare": true
+        }
+      ]
+    ]
+  }
+}
+```
+
+When enabled, the extension attempts a short best-effort chain after the queue commit: runtime `UIApplication.open`, responder-chain `openURL` selectors, then `NSExtensionContext.open`. Apple still does not guarantee that a Share Extension can foreground its containing app. Queue delivery does not depend on auto-open success.
+
+## Signing and EAS
+
+Simulator builds do not prove device signing. For a physical device or App Store build:
+
+- the App Group must exist in Apple Developer;
+- host and extension provisioning profiles need the entitlement;
+- the extension bundle ID needs signing credentials;
+- the host must embed exactly one extension product.
+
+After changing bundle IDs, App Group, target name, or activation rules, run a clean prebuild and regenerate credentials as needed.
+
+## Testing checklist
+
+Test a signed build on a physical iPhone or iPad:
+
+- text and URLs from Safari;
+- one and multiple images from Photos;
+- documents from Files;
+- a share while the host is terminated;
+- a share while the host is active;
+- queue delivery with auto-open disabled;
+- best-effort auto-open separately if enabled.

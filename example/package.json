@@ -1,0 +1,27 @@
+{
+  "name": "expo-share-content-example",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "expo": "~57.0.11",
+    "expo-share-content": "file:..",
+    "react": "19.2.3",
+    "react-native": "0.86.2"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild --clean --no-install"
+  },
+  "private": true,
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": ".."
+    }
+  }
+}

@@ -1,0 +1,78 @@
+---
+sidebar_position: 2
+title: Delivery and file lifecycle
+description: Build an idempotent at-least-once processing flow with explicit acknowledgement and file release.
+---
+
+# Delivery and file lifecycle
+
+Delivery is **at least once**. The API favors preserving data over silently dropping a separate share operation.
+
+## Pending and live delivery
+
+- `getPendingSharesAsync()` peeks every queued payload, oldest first.
+- `getInitialShareAsync()` peeks only the oldest payload.
+- `addShareListener()` provides low-latency warm delivery.
+- Pending queries and events do not consume queue records.
+
+A live event and a pending query may expose the same stable payload ID. Maintain an in-memory or persisted handled-ID table when processing must be exactly-once at the business layer.
+
+Native replay differs by platform. On iOS, starting observation and bringing the app active emits pending records that the current module instance has not emitted yet. On Android, intents captured before module creation are queued without a live event. Register listeners early, but always query pending shares on both platforms.
+
+:::caution Android process restoration
+Android has no trustworthy operation identifier for arbitrary `ACTION_SEND` callers. A task restored after process death can rarely redeliver a source intent under a new package-generated payload ID. Prefer duplicate delivery over dropping a legitimate separate share with identical content.
+:::
+
+## Acknowledge after success
+
+```ts
+await importShare(payload);
+await ExpoShareContent.clearPendingSharesAsync([payload.id]);
+```
+
+Passing IDs clears only selected queue records. Omitting the argument clears every pending record:
+
+```ts
+await ExpoShareContent.clearPendingSharesAsync();
+```
+
+Do not acknowledge before your application import is durable. Leaving the record pending makes failure retryable on the next launch.
+
+## File ownership
+
+Binary items point to module-managed local files. The source app's temporary provider permission is no longer required, but the module still owns lifecycle cleanup.
+
+A safe sequence is:
+
+1. Read or copy every required attachment.
+2. Persist application data and your own permanent file copies.
+3. Acknowledge the queue record.
+4. Release the module-managed attachment directory.
+
+```ts
+await ExpoShareContent.clearPendingSharesAsync([payload.id]);
+await ExpoShareContent.releaseSharedFilesAsync([payload.id]);
+```
+
+`releaseSharedFilesAsync` rejects IDs that are still pending. This prevents a queue record from pointing to deleted files.
+
+## Retention behavior
+
+- Files for pending receipts are protected.
+- `releaseSharedFilesAsync` deletes acknowledged receipt directories immediately.
+- Acknowledged but unreleased files become eligible for lazy cleanup seven days after receipt.
+- Cleanup runs during later queue operations; there is no background timer that guarantees deletion at the seven-day mark.
+- Each platform caps all module-managed attachment storage at 1 GiB.
+- Your app owns permanent retention after import.
+
+## Combining payload arrays
+
+Use the named helper when combining event and query results:
+
+```ts
+import {dedupeShares} from 'expo-share-content';
+
+const unique = dedupeShares([...pending, ...recentEvents]);
+```
+
+`dedupeShares` removes repeated IDs while preserving first-arrival order. It is not a replacement for persistent business-level idempotency.

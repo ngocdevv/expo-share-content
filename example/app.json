@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Expo Share Content Example",
+    "slug": "expo-share-content-example",
+    "version": "1.0.0",
+    "scheme": "expo-share-content-example",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-share-content",
+        {
+          "androidIntentFilters": ["text/*", "image/*", "video/*", "audio/*", "application/*"],
+          "androidMultiIntentFilters": ["image/*", "video/*", "audio/*", "application/*"],
+          "iosShareExtensionName": "Share to Example",
+          "iosOpenHostAppAfterShare": true
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "expo.modules.sharecontent.example"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "expo.modules.sharecontent.example"
+    }
+  }
+}
