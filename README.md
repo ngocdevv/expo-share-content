@@ -14,7 +14,7 @@ Receive text, URLs, images, videos, audio, and files shared **into** an Expo app
 | Android | `ACTION_SEND`, `ACTION_SEND_MULTIPLE` | Intent filters + activity lifecycle listener |
 | iOS | Share Extension | App Group queue |
 
-Current baseline: Expo SDK 57, React Native 0.86, Android API 24+, and iOS 16.4+. Web is not supported.
+Supported baselines: Expo SDK 57, React Native 0.86, Android API 24+, and iOS 16.4+.
 
 ## How it works
 
@@ -171,6 +171,10 @@ Subscribes to errors delivered by the host native module. Android reports intent
 
 Removes repeated payload IDs from a combined array while preserving first-arrival order. For long-lived processing, maintain an application-level set or persisted handled-ID table.
 
+### `createShareContentApi(nativeModule): ShareContentApi`
+
+Creates the same JavaScript API around an injected `ShareContentNativeModule`. This named export is useful for tests and custom native-module adapters; normal applications should use the default export or named API methods.
+
 ## Data contract
 
 ```ts
@@ -181,6 +185,8 @@ type SharedContentType =
   | 'video'
   | 'audio'
   | 'file';
+
+type ShareSource = 'share-sheet';
 
 type SharedContentItem = {
   id: string;
@@ -195,11 +201,22 @@ type SharedContentItem = {
 type SharePayload = {
   id: string;
   timestamp: number; // Unix time in milliseconds
-  source: 'share-sheet';
+  source: ShareSource;
   title?: string;
   items: SharedContentItem[];
 };
+
+type ShareErrorEvent = {
+  code: string;
+  message: string;
+};
+
+type ShareSubscription = {
+  remove(): void;
+};
 ```
+
+Advanced consumers can also import `ExpoShareContentModuleEvents`, the low-level `ShareContentNativeModule` adapter contract, and `ShareContentApi`, which is the return type of `createShareContentApi`.
 
 A single payload represents one share operation, so an Android `SEND_MULTIPLE` intent or multiple iOS extension attachments stay grouped in `items`.
 
@@ -273,7 +290,6 @@ The plugin validates MIME syntax, positive limits, identifiers, and deployment t
 
 ## Limitations
 
-- Android and iOS only; web is not supported.
 - No Expo Go support.
 - No outbound share API; use React Native's `Share` API or another package to send content out of the app.
 - No background upload or permanent file management.
@@ -287,13 +303,13 @@ The plugin validates MIME syntax, positive limits, identifiers, and deployment t
 npm install
 npm test
 npm run lint
-npm run build
-npm run build:plugin
+npm run build:all
+npm run verify:cjs
 ```
 
 The `example/` app links the package through `file:..`. Its generated `ios/` and `android/` directories are disposable prebuild output.
 
-`npm test` covers the JavaScript wrapper and config plugin. Native queue-codec tests live under `android/src/test/` and `ios/Tests/`; run them through the generated example Android project or compile the Swift test harness when changing native queue behavior.
+`npm test` covers the JavaScript wrapper, config plugin, and the example app's queue-state regression helper. Native queue-codec tests live under `android/src/test/` and `ios/Tests/`; run them through the generated example Android project or compile the Swift test harness when changing native queue behavior.
 
 ## License
 
