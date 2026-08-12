@@ -136,7 +136,7 @@ jobs:
           npm pack --pack-destination npm-artifact
           set -- npm-artifact/*.tgz
           test "$#" -eq 1
-          echo "tarball=$1" >> "$GITHUB_OUTPUT"
+          echo "tarball=./$1" >> "$GITHUB_OUTPUT"
           sha256sum "$1"
           git diff --exit-code -- build plugin/build
 
