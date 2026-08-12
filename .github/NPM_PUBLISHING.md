@@ -1,12 +1,11 @@
 # npm publishing setup
 
-The workflow in `workflows/publish-npm.yml` publishes only after a pull request:
+The workflow in `workflows/publish-npm.yml` runs on pushes to `main`, then publishes only when that commit:
 
-1. targets `main`;
-2. has a current approval from, or is merged by, an allowed npm approver;
-3. is merged;
-4. passes Jest tests, lint, build, CommonJS verification, and generated-output checks; and
-5. contains a package version that does not already exist on npm.
+1. is the merge commit of exactly one pull request targeting `main`;
+2. has a current approval from, or was merged by, an allowed npm approver;
+3. passes Jest tests, lint, build, CommonJS verification, and generated-output checks; and
+4. contains a package version that does not already exist on npm.
 
 ## npm Trusted Publishing
 
@@ -26,7 +25,9 @@ The workflow grants `id-token: write`, runs on a GitHub-hosted runner, and insta
 npm 11.19.0 because Trusted Publishing requires npm 11.5.1 or later with Node
 22.14.0 or later. npm 11.19.0 supports Node 22.14.0; npm 12 requires a newer
 Node release. The npm package setting disallows bypass-2FA token publishing;
-the configured OIDC publisher remains allowed.
+the configured OIDC publisher remains allowed. Publishing uses a `push` event on
+`main` because npm Trusted Publishing does not support `pull_request_target`
+OIDC token exchange reliably.
 
 ## Allowed approvers
 
