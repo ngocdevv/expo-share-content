@@ -1,6 +1,6 @@
 {
-  "name": "expo-share-content",
-  "version": "0.1.2",
+  "name": "@smoke/react-native-share-content",
+  "version": "0.2.0",
   "description": "Receive text, URLs, images, videos, audio, and files shared to an Expo app.",
   "type": "commonjs",
   "main": "build/index.js",
@@ -58,11 +58,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ngocdevv/expo-share-content.git"
+    "url": "git+https://github.com/ngocdevv/react-native-share-content.git"
   },
-  "homepage": "https://ngocdevv.github.io/expo-share-content/",
+  "homepage": "https://ngocdevv.github.io/react-native-share-content/",
   "bugs": {
-    "url": "https://github.com/ngocdevv/expo-share-content/issues"
+    "url": "https://github.com/ngocdevv/react-native-share-content/issues"
   },
   "engines": {
     "node": "^20.19.4 || ^22.13.0 || ^24.3.0 || >=25.0.0"
@@ -100,5 +100,9 @@
     "expo": "^57.0.0",
     "react": "*",
     "react-native": "*"
+  },
+  "directories": {
+    "doc": "docs",
+    "example": "example"
   }
 }

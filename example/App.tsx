@@ -1,7 +1,7 @@
 import ExpoShareContent, {
   type SharedContentItem,
   type SharePayload,
-} from 'expo-share-content';
+} from 'react-native-share-content';
 import { useCallback, useEffect, useState } from 'react';
 import {
   Button,
@@ -255,9 +255,9 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Expo Share Content</Text>
+        <Text style={styles.title}>React Native Share Content</Text>
         <Text style={styles.instructions}>
-          Open another app, choose Share, then select “Expo Share Content Example” on Android or
+          Open another app, choose Share, then select “React Native Share Content Example” on Android or
           “Share to Example” on iOS. Received text, links, images, and files show below with a
           readable preview (not only raw JSON).
         </Text>

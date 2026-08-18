@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: Getting started
-description: Install expo-share-content, configure the Expo plugin, and receive your first shared payload.
+description: Install react-native-share-content, configure the Expo plugin, and receive your first shared payload.
 ---
 
 # Getting started
@@ -9,7 +9,7 @@ description: Install expo-share-content, configure the Expo plugin, and receive 
 Receive text, URLs, images, video, audio, and files shared **into** an Expo app.
 
 :::info Native module required
-`expo-share-content` does not work in Expo Go. Use a development build or a production build after running Expo prebuild.
+`react-native-share-content` does not work in Expo Go. Use a development build or a production build after running Expo prebuild.
 :::
 
 ## Requirements
@@ -24,7 +24,7 @@ Receive text, URLs, images, video, audio, and files shared **into** an Expo app.
 ## Install
 
 ```bash
-npx expo install expo-share-content
+npx expo install react-native-share-content
 ```
 
 ## Add the config plugin
@@ -43,7 +43,7 @@ Add platform identifiers and the package to your Expo configuration:
     },
     "plugins": [
       [
-        "expo-share-content",
+        "react-native-share-content",
         {
           "iosShareExtensionName": "ShareExtension",
           "iosOpenHostAppAfterShare": false
@@ -67,7 +67,7 @@ Register listeners early, then query pending payloads. Keep processing idempoten
 ```tsx title="ShareReceiver.tsx"
 import ExpoShareContent, {
   type SharePayload,
-} from 'expo-share-content';
+} from 'react-native-share-content';
 import { useEffect } from 'react';
 
 export function ShareReceiver() {

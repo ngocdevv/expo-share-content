@@ -16,7 +16,7 @@ The npm package connection is restricted to:
 
 ```text
 Provider: GitHub Actions
-Repository: ngocdevv/expo-share-content
+Repository: ngocdevv/react-native-share-content
 Workflow: publish-npm.yml
 Allowed action: npm publish
 ```

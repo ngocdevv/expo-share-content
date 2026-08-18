@@ -49,7 +49,7 @@ export function applyAndroidShareConfig(
 
   const application = androidManifest.manifest.application?.[0];
   if (!application) {
-    throw new Error('[expo-share-content] Android manifest has no application node.');
+    throw new Error('[react-native-share-content] Android manifest has no application node.');
   }
   const metadataNames = new Set([
     'expo.modules.sharecontent.MAX_SHARED_ITEMS',
@@ -114,7 +114,9 @@ export function applyAndroidMainActivity(contents: string, language: string): st
       /(\s*)setIntent\((\w+)\); \/\/ expo-share-content-intent\n\s*ShareContentIntentHolder\.offer\(\2\);/;
     const pattern = language === 'kt' ? kotlinLegacy : language === 'java' ? javaLegacy : null;
     if (!pattern) {
-      throw new Error(`[expo-share-content] Unsupported MainActivity language: ${language}`);
+      throw new Error(
+        `[react-native-share-content] Unsupported MainActivity language: ${language}`
+      );
     }
     const migrated = contents.replace(
       pattern,
@@ -124,7 +126,7 @@ export function applyAndroidMainActivity(contents: string, language: string): st
     );
     if (migrated === contents) {
       throw new Error(
-        '[expo-share-content] Unable to update the existing MainActivity intent bridge. Run a clean prebuild.'
+        '[react-native-share-content] Unable to update the existing MainActivity intent bridge. Run a clean prebuild.'
       );
     }
     return migrated;
@@ -159,7 +161,8 @@ export function applyAndroidMainActivity(contents: string, language: string): st
   }
 `;
     const closingBrace = updated.lastIndexOf('}');
-    if (closingBrace < 0) throw new Error('[expo-share-content] Invalid Kotlin MainActivity.');
+    if (closingBrace < 0)
+      throw new Error('[react-native-share-content] Invalid Kotlin MainActivity.');
     return `${updated.slice(0, closingBrace)}${method}${updated.slice(closingBrace)}`;
   }
 
@@ -193,11 +196,12 @@ export function applyAndroidMainActivity(contents: string, language: string): st
   }
 `;
     const closingBrace = updated.lastIndexOf('}');
-    if (closingBrace < 0) throw new Error('[expo-share-content] Invalid Java MainActivity.');
+    if (closingBrace < 0)
+      throw new Error('[react-native-share-content] Invalid Java MainActivity.');
     return `${updated.slice(0, closingBrace)}${method}${updated.slice(closingBrace)}`;
   }
 
-  throw new Error(`[expo-share-content] Unsupported MainActivity language: ${language}`);
+  throw new Error(`[react-native-share-content] Unsupported MainActivity language: ${language}`);
 }
 
 export const withAndroidShareContent: ConfigPlugin<ResolvedPluginOptions> = (config, options) => {

@@ -5,7 +5,7 @@ import Link from '@docusaurus/Link';
 import clsx from 'clsx';
 import styles from './index.module.css';
 
-const INSTALL_COMMAND = 'npx expo install expo-share-content';
+const INSTALL_COMMAND = 'npx expo install react-native-share-content';
 
 const features = [
   {
@@ -203,7 +203,7 @@ function ShareFlow() {
           <img
             className={styles.phoneShot}
             src="img/demo-share-received.png"
-            alt="Privacy-safe Expo Share Content demo showing an image payload with preview, filename, size, and App Group file URI"
+            alt="Privacy-safe React Native Share Content demo showing an image payload with preview, filename, size, and App Group file URI"
             width={552}
             height={1200}
             decoding="async"
@@ -305,7 +305,7 @@ export default function Home(): React.ReactNode {
                 </Link>
                 <Link
                   className={styles.secondaryButton}
-                  href="https://github.com/ngocdevv/expo-share-content"
+                  href="https://github.com/ngocdevv/react-native-share-content"
                 >
                   View on GitHub
                 </Link>

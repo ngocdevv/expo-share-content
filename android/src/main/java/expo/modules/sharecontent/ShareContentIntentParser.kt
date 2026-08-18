@@ -79,7 +79,7 @@ internal class ShareContentIntentParser(
         addItem(items, fileItem(stream, intent.type, shareId, intent))
       }
     } catch (error: Throwable) {
-      File(context.noBackupFilesDir, "expo-share-content/$shareId").deleteRecursively()
+      File(context.noBackupFilesDir, "react-native-share-content/$shareId").deleteRecursively()
       throw error
     }
 
@@ -234,7 +234,7 @@ internal class ShareContentIntentParser(
       throw IllegalArgumentException("Shared files exceed the $maxTotalSize-byte aggregate limit")
     }
 
-    val directory = File(context.noBackupFilesDir, "expo-share-content/$shareId")
+    val directory = File(context.noBackupFilesDir, "react-native-share-content/$shareId")
     check(directory.mkdirs() || directory.isDirectory) { "Cannot create share cache directory" }
 
     val safeName = File(proposedName).name

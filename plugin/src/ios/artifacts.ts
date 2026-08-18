@@ -20,13 +20,15 @@ export function resolveIosIdentifiers(
   options: ResolvedPluginOptions
 ): IosIdentifiers {
   if (!identity.bundleIdentifier) {
-    throw new Error('[expo-share-content] expo.ios.bundleIdentifier is required.');
+    throw new Error('[react-native-share-content] expo.ios.bundleIdentifier is required.');
   }
 
   const displayName = options.iosShareExtensionName;
   const targetName = displayName.replace(/[^a-zA-Z0-9]/g, '');
   if (!targetName) {
-    throw new Error('[expo-share-content] iosShareExtensionName must contain letters or numbers.');
+    throw new Error(
+      '[react-native-share-content] iosShareExtensionName must contain letters or numbers.'
+    );
   }
 
   return {
@@ -47,12 +49,12 @@ function resolveShareExtensionBundleIdentifier(
   const value = override?.trim() || `${hostBundleIdentifier}.share`;
   if (value === hostBundleIdentifier) {
     throw new Error(
-      '[expo-share-content] iosShareExtensionBundleIdentifier must differ from the host bundle identifier.'
+      '[react-native-share-content] iosShareExtensionBundleIdentifier must differ from the host bundle identifier.'
     );
   }
   if (!value.startsWith(`${hostBundleIdentifier}.`)) {
     throw new Error(
-      `[expo-share-content] iosShareExtensionBundleIdentifier must be prefixed by the host bundle identifier (${hostBundleIdentifier}.).`
+      `[react-native-share-content] iosShareExtensionBundleIdentifier must be prefixed by the host bundle identifier (${hostBundleIdentifier}.).`
     );
   }
   return value;

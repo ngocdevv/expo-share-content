@@ -1,10 +1,10 @@
-# Product requirements: expo-share-content
+# Product requirements: react-native-share-content
 
 ## 1. Problem
 
 Expo applications need a reliable way to receive content from the native share sheet. Existing React Native packages commonly depend on the legacy bridge, manual AndroidManifest edits, and manually maintained iOS Share Extension targets. Event-only APIs also lose data when JavaScript is not ready during a cold start.
 
-`expo-share-content` provides the same core capability using Expo Modules and an Expo config plugin.
+`react-native-share-content` provides the same core capability using Expo Modules and an Expo config plugin.
 
 ## 2. Goals
 
