@@ -1,14 +1,17 @@
-# expo-share-content
+# react-native-share-content
 
 Receive text, URLs, images, videos, audio, and files shared **into** an Expo app.
 
-`expo-share-content` is an Expo Module alternative to bridge-based packages such as `react-native-share-menu`. It supports cold starts, warm starts, multiple attachments, a durable pending queue, typed events, and Expo config plugins for Android share intents and an iOS Share Extension.
+`react-native-share-content` is an Expo Module alternative to bridge-based packages such as `react-native-share-menu`. It supports cold starts, warm starts, multiple attachments, a durable pending queue, typed events, and Expo config plugins for Android share intents and an iOS Share Extension.
+
+> [!NOTE]
+> This package was previously published as `expo-share-content`. Existing users should remove the old dependency, install `react-native-share-content`, update imports and the Expo config plugin entry, then run `npx expo prebuild --clean`. The JavaScript API and native module identifiers are unchanged.
 
 ## Demo
 
 | Android | iOS |
 | :---: | :---: |
-| ![Receive shared content on Android](https://raw.githubusercontent.com/ngocdevv/expo-share-content/main/docs/static/img/demo-android.gif) | ![Receive shared content on iOS](https://raw.githubusercontent.com/ngocdevv/expo-share-content/main/docs/static/img/demo-ios.gif) |
+| ![Receive shared content on Android](https://raw.githubusercontent.com/ngocdevv/react-native-share-content/main/docs/static/img/demo-android.gif) | ![Receive shared content on iOS](https://raw.githubusercontent.com/ngocdevv/react-native-share-content/main/docs/static/img/demo-ios.gif) |
 
 > [!IMPORTANT]
 > This package contains native code and does **not** work in Expo Go. Use a development build or production build after running prebuild.
@@ -33,7 +36,7 @@ Delivery is **at least once**. A cold-start query and a live event can refer to 
 ## Installation
 
 ```sh
-npx expo install expo-share-content
+npx expo install react-native-share-content
 ```
 
 Add platform identifiers and the config plugin:
@@ -50,7 +53,7 @@ Add platform identifiers and the config plugin:
     },
     "plugins": [
       [
-        "expo-share-content",
+        "react-native-share-content",
         {
           "iosShareExtensionName": "ShareExtension"
         }
@@ -93,7 +96,7 @@ Register the listener early, then inspect pending shares. Keep processing idempo
 ```tsx
 import ExpoShareContent, {
   type SharePayload,
-} from 'expo-share-content';
+} from 'react-native-share-content';
 import { useEffect } from 'react';
 
 export function ShareReceiver() {
@@ -258,7 +261,7 @@ Example with narrower Android filters and explicit Apple identifiers:
 
 ```json
 [
-  "expo-share-content",
+  "react-native-share-content",
   {
     "androidIntentFilters": ["text/plain", "image/*"],
     "androidMultiIntentFilters": ["image/*"],

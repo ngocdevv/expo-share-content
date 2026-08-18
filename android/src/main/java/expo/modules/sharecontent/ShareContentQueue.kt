@@ -143,7 +143,7 @@ internal object ShareContentQueue {
       require(id.isNotBlank() && id != "." && id != ".." && File(id).name == id) {
         "Invalid share receipt ID: $id"
       }
-      id to File(context.noBackupFilesDir, "expo-share-content/$id")
+      id to File(context.noBackupFilesDir, "react-native-share-content/$id")
     }
     for ((id, directory) in directories) {
       check(!directory.exists() || directory.deleteRecursively()) {
@@ -169,7 +169,7 @@ internal object ShareContentQueue {
   }
 
   private fun storageRoot(context: Context): File =
-    File(context.noBackupFilesDir, "expo-share-content")
+    File(context.noBackupFilesDir, "react-native-share-content")
 
   private fun atomicQueueFile(context: Context): AtomicFile {
     val root = storageRoot(context)

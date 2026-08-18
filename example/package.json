@@ -1,10 +1,10 @@
 {
-  "name": "expo-share-content-example",
+  "name": "react-native-share-content-example",
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
     "expo": "~57.0.11",
-    "expo-share-content": "file:..",
+    "react-native-share-content": "file:..",
     "react": "19.2.3",
     "react-native": "0.86.2"
   },

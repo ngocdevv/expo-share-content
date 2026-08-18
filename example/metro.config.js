@@ -20,7 +20,7 @@ config.resolver.nodeModulesPaths = [
 ];
 
 config.resolver.extraNodeModules = {
-  'expo-share-content-scaffold': '..',
+  'react-native-share-content-scaffold': '..',
 };
 
 config.watchFolders = [path.resolve(__dirname, '..')];

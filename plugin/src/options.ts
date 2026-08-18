@@ -64,7 +64,7 @@ const IOS_ACTIVATION_RULE_TYPES = {
 function validateMimeTypes(values: readonly string[]): void {
   for (const value of values) {
     if (!MIME_TYPE_PATTERN.test(value)) {
-      throw new Error(`[expo-share-content] Invalid Android MIME type: ${value}`);
+      throw new Error(`[react-native-share-content] Invalid Android MIME type: ${value}`);
     }
   }
 }
@@ -72,7 +72,7 @@ function validateMimeTypes(values: readonly string[]): void {
 function assertPositiveInteger(value: number, optionName: string): void {
   if (!Number.isSafeInteger(value) || value <= 0 || value > ANDROID_MANIFEST_INTEGER_MAX) {
     throw new Error(
-      `[expo-share-content] ${optionName} must be a positive integer no greater than ${ANDROID_MANIFEST_INTEGER_MAX}.`
+      `[react-native-share-content] ${optionName} must be a positive integer no greater than ${ANDROID_MANIFEST_INTEGER_MAX}.`
     );
   }
 }
@@ -81,32 +81,36 @@ function validateIosActivationRules(value: IosActivationRules | undefined): void
   if (value === undefined) return;
   if (typeof value === 'string') {
     if (!value.trim()) {
-      throw new Error('[expo-share-content] iosActivationRules predicate must not be empty.');
+      throw new Error(
+        '[react-native-share-content] iosActivationRules predicate must not be empty.'
+      );
     }
     if (/\bTRUEPREDICATE\b/i.test(value)) {
       throw new Error(
-        '[expo-share-content] iosActivationRules must not contain TRUEPREDICATE in production builds.'
+        '[react-native-share-content] iosActivationRules must not contain TRUEPREDICATE in production builds.'
       );
     }
     return;
   }
 
   if (Object.keys(value).length === 0) {
-    throw new Error('[expo-share-content] iosActivationRules must not be an empty dictionary.');
+    throw new Error(
+      '[react-native-share-content] iosActivationRules must not be an empty dictionary.'
+    );
   }
   for (const [key, ruleValue] of Object.entries(value)) {
     const expectedType = IOS_ACTIVATION_RULE_TYPES[key as keyof typeof IOS_ACTIVATION_RULE_TYPES];
     if (!expectedType) {
-      throw new Error(`[expo-share-content] Unsupported iosActivationRules key: ${key}`);
+      throw new Error(`[react-native-share-content] Unsupported iosActivationRules key: ${key}`);
     }
     if (expectedType === 'boolean') {
       if (typeof ruleValue !== 'boolean') {
-        throw new Error(`[expo-share-content] ${key} must be a boolean.`);
+        throw new Error(`[react-native-share-content] ${key} must be a boolean.`);
       }
       continue;
     }
     if (!Number.isSafeInteger(ruleValue) || Number(ruleValue) <= 0) {
-      throw new Error(`[expo-share-content] ${key} must be a positive integer.`);
+      throw new Error(`[react-native-share-content] ${key} must be a positive integer.`);
     }
   }
 }
@@ -114,14 +118,14 @@ function validateIosActivationRules(value: IosActivationRules | undefined): void
 function validateIosOptions(options: ExpoShareContentPluginOptions): void {
   validateIosActivationRules(options.iosActivationRules);
   if (options.iosShareExtensionName !== undefined && !options.iosShareExtensionName.trim()) {
-    throw new Error('[expo-share-content] iosShareExtensionName must not be empty.');
+    throw new Error('[react-native-share-content] iosShareExtensionName must not be empty.');
   }
   if (
     options.iosDeploymentTarget !== undefined &&
     !/^\d+(?:\.\d+){0,2}$/.test(options.iosDeploymentTarget)
   ) {
     throw new Error(
-      '[expo-share-content] iosDeploymentTarget must be a numeric version such as "16.4".'
+      '[react-native-share-content] iosDeploymentTarget must be a numeric version such as "16.4".'
     );
   }
   if (options.iosDeploymentTarget !== undefined) {
@@ -129,7 +133,9 @@ function validateIosOptions(options: ExpoShareContentPluginOptions): void {
       .split('.')
       .map((part) => Number(part));
     if (major < 16 || (major === 16 && minor < 4)) {
-      throw new Error('[expo-share-content] iosDeploymentTarget must be iOS 16.4 or newer.');
+      throw new Error(
+        '[react-native-share-content] iosDeploymentTarget must be iOS 16.4 or newer.'
+      );
     }
   }
   if (
@@ -137,7 +143,7 @@ function validateIosOptions(options: ExpoShareContentPluginOptions): void {
     !/^group\.[A-Za-z0-9][A-Za-z0-9.-]*$/.test(options.iosAppGroupIdentifier)
   ) {
     throw new Error(
-      '[expo-share-content] iosAppGroupIdentifier must start with "group." and use identifier-safe characters.'
+      '[react-native-share-content] iosAppGroupIdentifier must start with "group." and use identifier-safe characters.'
     );
   }
   if (
@@ -145,18 +151,20 @@ function validateIosOptions(options: ExpoShareContentPluginOptions): void {
     !/^[A-Za-z0-9][A-Za-z0-9.-]*$/.test(options.iosShareExtensionBundleIdentifier)
   ) {
     throw new Error(
-      '[expo-share-content] iosShareExtensionBundleIdentifier is not a valid bundle identifier.'
+      '[react-native-share-content] iosShareExtensionBundleIdentifier is not a valid bundle identifier.'
     );
   }
   if (options.iosHostUrlScheme !== undefined) {
     const scheme = options.iosHostUrlScheme.trim();
     if (!scheme) {
-      throw new Error('[expo-share-content] iosHostUrlScheme must not be empty when provided.');
+      throw new Error(
+        '[react-native-share-content] iosHostUrlScheme must not be empty when provided.'
+      );
     }
     // Accept bare schemes (myapp) or full URL prefixes (myapp://share).
     if (!/^[A-Za-z][A-Za-z0-9+.-]*(?::\/\/[\S]*)?$/.test(scheme)) {
       throw new Error(
-        '[expo-share-content] iosHostUrlScheme must be a URL scheme such as "myapp" or "myapp://share".'
+        '[react-native-share-content] iosHostUrlScheme must be a URL scheme such as "myapp" or "myapp://share".'
       );
     }
   }
@@ -189,12 +197,12 @@ export function resolvePluginOptions(
     )
   ) {
     throw new Error(
-      '[expo-share-content] iOS activation-rule item counts must not exceed maxSharedItems.'
+      '[react-native-share-content] iOS activation-rule item counts must not exceed maxSharedItems.'
     );
   }
   if (maxSharedTotalSize < maxSharedFileSize) {
     throw new Error(
-      '[expo-share-content] maxSharedTotalSize must be greater than or equal to maxSharedFileSize.'
+      '[react-native-share-content] maxSharedTotalSize must be greater than or equal to maxSharedFileSize.'
     );
   }
 

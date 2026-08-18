@@ -6,7 +6,7 @@ module.exports = async (env, argv) => {
     {
       ...env,
       babel: {
-        dangerouslyAddModulePathsToTranspile: ['expo-share-content-scaffold'],
+        dangerouslyAddModulePathsToTranspile: ['react-native-share-content-scaffold'],
       },
     },
     argv

@@ -95,7 +95,7 @@ public final class ExpoShareContentModule: Module {
       throw error(
         code: 1,
         message:
-          "ExpoShareContentAppGroup is missing. Add the expo-share-content config plugin and rebuild the native app."
+          "ExpoShareContentAppGroup is missing. Add the react-native-share-content config plugin and rebuild the native app."
       )
     }
     return value

@@ -18,4 +18,4 @@ const withExpoShareContent: ConfigPlugin<ExpoShareContentPluginOptions | void> =
 export { resolvePluginOptions } from './options';
 export type { ExpoShareContentPluginOptions } from './options';
 
-export default createRunOncePlugin(withExpoShareContent, 'expo-share-content', '0.1.0');
+export default createRunOncePlugin(withExpoShareContent, 'react-native-share-content', '0.1.0');

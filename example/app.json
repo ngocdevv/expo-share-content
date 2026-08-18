@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Expo Share Content Example",
-    "slug": "expo-share-content-example",
+    "name": "React Native Share Content Example",
+    "slug": "react-native-share-content-example",
     "version": "1.0.0",
-    "scheme": "expo-share-content-example",
+    "scheme": "react-native-share-content-example",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
       [
-        "expo-share-content",
+        "react-native-share-content",
         {
           "androidIntentFilters": ["text/*", "image/*", "video/*", "audio/*", "application/*"],
           "androidMultiIntentFilters": ["image/*", "video/*", "audio/*", "application/*"],

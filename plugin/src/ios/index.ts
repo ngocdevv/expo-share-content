@@ -46,7 +46,7 @@ function registerHostUrlScheme(
   );
   if (!alreadyRegistered) {
     urlTypes.push({
-      CFBundleURLName: `${bundleIdentifier}.expo-share-content`,
+      CFBundleURLName: `${bundleIdentifier}.react-native-share-content`,
       CFBundleURLSchemes: [scheme],
     });
   }
@@ -56,7 +56,7 @@ function registerHostUrlScheme(
 function getIdentity(config: Parameters<ConfigPlugin>[0], options: ResolvedPluginOptions) {
   const bundleIdentifier = config.ios?.bundleIdentifier;
   if (!bundleIdentifier) {
-    throw new Error('[expo-share-content] expo.ios.bundleIdentifier is required.');
+    throw new Error('[react-native-share-content] expo.ios.bundleIdentifier is required.');
   }
   return resolveIosIdentifiers(
     {
@@ -124,7 +124,7 @@ function findNativeTarget(
     if (name !== targetName) continue;
     if (match) {
       throw new Error(
-        `[expo-share-content] Multiple Xcode targets normalize to ${targetName}; refusing ambiguous reconciliation.`
+        `[react-native-share-content] Multiple Xcode targets normalize to ${targetName}; refusing ambiguous reconciliation.`
       );
     }
     match = { uuid, pbxNativeTarget: target };
@@ -206,7 +206,7 @@ export function assertCompatibleExtensionTarget(
   const productType = unquote(target.pbxNativeTarget.productType);
   if (productType !== 'com.apple.product-type.app-extension') {
     throw new Error(
-      `[expo-share-content] Xcode target ${targetName} already exists but is not an app extension.`
+      `[react-native-share-content] Xcode target ${targetName} already exists but is not an app extension.`
     );
   }
 
@@ -217,14 +217,14 @@ export function assertCompatibleExtensionTarget(
   );
   if (!productReference || fileType !== 'wrapper.app-extension') {
     throw new Error(
-      `[expo-share-content] Xcode target ${targetName} has an incompatible product reference.`
+      `[react-native-share-content] Xcode target ${targetName} has an incompatible product reference.`
     );
   }
 
   const productPath = unquote(productReference.path ?? productReference.name);
   if (productPath && productPath !== `${targetName}.appex`) {
     throw new Error(
-      `[expo-share-content] Xcode target ${targetName} product reference path ${productPath} does not match ${targetName}.appex.`
+      `[react-native-share-content] Xcode target ${targetName} product reference path ${productPath} does not match ${targetName}.appex.`
     );
   }
 
@@ -234,7 +234,7 @@ export function assertCompatibleExtensionTarget(
     const other = nativeTargets[uuid];
     if (other?.productReference === productReferenceUuid) {
       throw new Error(
-        `[expo-share-content] Xcode target ${targetName} reuses a product reference owned by another target.`
+        `[react-native-share-content] Xcode target ${targetName} reuses a product reference owned by another target.`
       );
     }
   }
@@ -250,7 +250,7 @@ export function ensureTargetMembership(
     (key) => !key.endsWith('_comment')
   );
   if (projectIds.length !== 1) {
-    throw new Error('[expo-share-content] Cannot reconcile an ambiguous PBXProject root.');
+    throw new Error('[react-native-share-content] Cannot reconcile an ambiguous PBXProject root.');
   }
   const root = objects.PBXProject[projectIds[0]!];
   root.targets ||= [];
@@ -260,7 +260,7 @@ export function ensureTargetMembership(
 
   const products = findGroup(project, 'Products');
   if (!products) {
-    throw new Error('[expo-share-content] Cannot resolve the Xcode Products group.');
+    throw new Error('[react-native-share-content] Cannot resolve the Xcode Products group.');
   }
   const productReference = target.pbxNativeTarget.productReference;
   if (!products.group.children.some((entry: any) => entry.value === productReference)) {
@@ -285,7 +285,9 @@ export function ensureHostEmbedPhase(
 
   const hostNativeTarget = objects.PBXNativeTarget[hostTargetUuid];
   if (!hostNativeTarget) {
-    throw new Error(`[expo-share-content] Cannot resolve host Xcode target ${hostTargetUuid}`);
+    throw new Error(
+      `[react-native-share-content] Cannot resolve host Xcode target ${hostTargetUuid}`
+    );
   }
 
   const copySection = objects.PBXCopyFilesBuildPhase;
@@ -317,7 +319,9 @@ export function ensureHostEmbedPhase(
         (uuid) => !uuid.endsWith('_comment') && copySection[uuid] === phase
       );
     if (!phaseUuid) {
-      throw new Error('[expo-share-content] Failed to create host Embed App Extensions phase.');
+      throw new Error(
+        '[react-native-share-content] Failed to create host Embed App Extensions phase.'
+      );
     }
   }
 
@@ -413,7 +417,7 @@ export function ensureTargetBuildPhase(
 
   const nativeTarget = objects.PBXNativeTarget[targetUuid];
   if (!nativeTarget) {
-    throw new Error(`[expo-share-content] Cannot resolve Xcode target ${targetUuid}`);
+    throw new Error(`[react-native-share-content] Cannot resolve Xcode target ${targetUuid}`);
   }
 
   const phaseReference = nativeTarget.buildPhases.find((entry: any) => {
@@ -426,7 +430,7 @@ export function ensureTargetBuildPhase(
   if (fileNames.length === 0) return;
   const groupEntry = findGroup(project, groupName);
   if (!groupEntry) {
-    throw new Error(`[expo-share-content] Cannot resolve Xcode group ${groupName}`);
+    throw new Error(`[react-native-share-content] Cannot resolve Xcode group ${groupName}`);
   }
 
   const buildFiles = objects.PBXBuildFile;
@@ -490,7 +494,9 @@ export function addExtensionTarget(
     }
     const groupEntry = findGroup(project, identifiers.targetName);
     if (!groupEntry) {
-      throw new Error(`[expo-share-content] Cannot create Xcode group ${identifiers.targetName}`);
+      throw new Error(
+        `[react-native-share-content] Cannot create Xcode group ${identifiers.targetName}`
+      );
     }
     for (const fileName of allFiles) addFileReference(project, groupEntry.group, fileName);
   }
@@ -504,7 +510,9 @@ export function addExtensionTarget(
     project.addTarget(identifiers.targetName, 'app_extension', identifiers.targetName);
 
   if (!target.uuid) {
-    throw new Error(`[expo-share-content] Cannot resolve Xcode target ${identifiers.targetName}`);
+    throw new Error(
+      `[react-native-share-content] Cannot resolve Xcode target ${identifiers.targetName}`
+    );
   }
   assertCompatibleExtensionTarget(project, target, identifiers.targetName);
   ensureTargetMembership(project, target, `${identifiers.targetName}.appex`);
@@ -537,13 +545,13 @@ export function addExtensionTarget(
   const hostTarget = findHostApplicationTarget(project, hostBundleIdentifier);
   if (!hostTarget) {
     throw new Error(
-      '[expo-share-content] Could not find the host application target to embed the Share Extension.'
+      '[react-native-share-content] Could not find the host application target to embed the Share Extension.'
     );
   }
   const hostNativeTarget = project.pbxNativeTargetSection()[hostTarget.uuid];
   if (!hostNativeTarget) {
     throw new Error(
-      '[expo-share-content] Host application target is missing from the Xcode project.'
+      '[react-native-share-content] Host application target is missing from the Xcode project.'
     );
   }
   const dependencySection = objects.PBXTargetDependency;

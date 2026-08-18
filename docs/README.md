@@ -1,6 +1,6 @@
-# expo-share-content documentation
+# react-native-share-content documentation
 
-This directory contains the Docusaurus website for `expo-share-content`.
+This directory contains the Docusaurus website for `react-native-share-content`.
 
 ## Local development
 
@@ -10,7 +10,7 @@ npm install
 npm start
 ```
 
-The development server opens at `http://localhost:3000/expo-share-content/`.
+The development server opens at `http://localhost:3000/react-native-share-content/`.
 
 ## Production build
 
@@ -21,7 +21,7 @@ npm run serve
 ```
 
 The static output is written to `docs/build/` and is configured for GitHub Pages at
-`https://ngocdevv.github.io/expo-share-content/`.
+`https://ngocdevv.github.io/react-native-share-content/`.
 
 ## Deployment
 

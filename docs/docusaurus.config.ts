@@ -3,13 +3,13 @@ import type {Options, ThemeConfig} from '@docusaurus/preset-classic';
 import {themes as prismThemes} from 'prism-react-renderer';
 
 const config: Config = {
-  title: 'Expo Share Content',
+  title: 'React Native Share Content',
   tagline: 'Receive shared content reliably in Expo apps',
   favicon: 'img/favicon.svg',
   url: 'https://ngocdevv.github.io',
-  baseUrl: '/expo-share-content/',
+  baseUrl: '/react-native-share-content/',
   organizationName: 'ngocdevv',
-  projectName: 'expo-share-content',
+  projectName: 'react-native-share-content',
   trailingSlash: false,
   onBrokenLinks: 'throw',
   markdown: {
@@ -27,7 +27,7 @@ const config: Config = {
           breadcrumbs: true,
           showLastUpdateTime: false,
           editUrl:
-            'https://github.com/ngocdevv/expo-share-content/edit/main/docs/',
+            'https://github.com/ngocdevv/react-native-share-content/edit/main/docs/',
         },
         blog: false,
         theme: {
@@ -51,25 +51,25 @@ const config: Config = {
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'Expo Share Content',
+      title: 'React Native Share Content',
       hideOnScroll: false,
       logo: {
-        alt: 'Expo Share Content logo',
+        alt: 'React Native Share Content logo',
         src: 'img/logo.svg',
       },
       items: [
         {
-          href: '/expo-share-content/?section=features',
+          href: '/react-native-share-content/?section=features',
           label: 'Features',
           position: 'left',
         },
         {
-          href: '/expo-share-content/?section=showcase',
+          href: '/react-native-share-content/?section=showcase',
           label: 'Example',
           position: 'left',
         },
         {
-          href: '/expo-share-content/?section=faq',
+          href: '/react-native-share-content/?section=faq',
           label: 'FAQ',
           position: 'left',
         },
@@ -80,12 +80,12 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://www.npmjs.com/package/expo-share-content',
+          href: 'https://www.npmjs.com/package/react-native-share-content',
           label: 'npm',
           position: 'right',
         },
         {
-          href: 'https://github.com/ngocdevv/expo-share-content',
+          href: 'https://github.com/ngocdevv/react-native-share-content',
           label: 'GitHub',
           position: 'right',
           className: 'navbar-github-link',
@@ -121,20 +121,20 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/ngocdevv/expo-share-content',
+              href: 'https://github.com/ngocdevv/react-native-share-content',
             },
             {
               label: 'npm',
-              href: 'https://www.npmjs.com/package/expo-share-content',
+              href: 'https://www.npmjs.com/package/react-native-share-content',
             },
             {
               label: 'License',
-              href: 'https://github.com/ngocdevv/expo-share-content/blob/main/LICENSE',
+              href: 'https://github.com/ngocdevv/react-native-share-content/blob/main/LICENSE',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} expo-share-content. MIT licensed.`,
+      copyright: `Copyright © ${new Date().getFullYear()} react-native-share-content. MIT licensed.`,
     },
     prism: {
       theme: prismThemes.github,
