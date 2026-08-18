@@ -1,5 +1,5 @@
 {
-  "name": "@smoke/react-native-share-content",
+  "name": "react-native-share-content",
   "version": "0.2.0",
   "description": "Receive text, URLs, images, videos, audio, and files shared to an Expo app.",
   "type": "commonjs",
